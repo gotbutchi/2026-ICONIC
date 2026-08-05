@@ -9,25 +9,25 @@ sources:
 
 models:
   - name: stg_weekly_sales
-    description: "Cleaned and standardized weekly sales data. Handles data anomalies from raw CSV."
+    description: "Cleaned and standardized weekly sales data."
     columns:
       - name: store_id
-        description: "Primary key / Natural Key for store"
+        description: "Primary key for store"
         tests:
           - not_null
 
       - name: partition_date
-        description: "The end date of the week. Handled month 13 anomalies."
+        description: "The end date of the week"
         tests:
           - not_null
 
       - name: weekly_sales_amount_vnd
-        description: "Total weekly sales amount. Handled extreme negative outliers."
+        description: "Total weekly sales amount"
         tests:
           - not_null
 
       - name: is_invalid_sales
-        description: "Flag to mark rows with negative or zero sales"
+        description: "Flag indicating negative or zero sales"
 
       - name: is_holiday_week
         description: "Boolean flag if the week includes a major holiday"

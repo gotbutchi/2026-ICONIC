@@ -1,0 +1,16 @@
+dbt-env/
+venv/
+.venv/
+__pycache__/
+
+target/
+dbt_packages/
+dbt_internal_packages/
+logs/
+.dbt/
+*.log
+.env
+
+.vscode/
+.DS_Store
+*.swp
