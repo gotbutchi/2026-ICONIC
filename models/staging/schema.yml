@@ -37,7 +37,7 @@ models:
       - name: fuel_price_amount_vnd
         description: "Cost of fuel in the region"
 
-      - name: cpi_index
+      - name: cpi
         description: "Consumer Price Index"
 
       - name: unemployment_rate

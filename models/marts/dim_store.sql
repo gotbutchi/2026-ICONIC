@@ -9,7 +9,7 @@ WITH source AS (
         partition_date AS valid_from,
         LEAD(partition_date) OVER (PARTITION BY store_id ORDER BY partition_date) AS valid_to,
         fuel_price_amount_vnd,
-        cpi_index,
+        cpi,
         unemployment_rate
     FROM {{ ref('stg_weekly_sales') }}
 )
@@ -22,7 +22,7 @@ SELECT
     
     -- environment attributes (Type 2)
     fuel_price_amount_vnd,
-    cpi_index,
+    cpi,
     unemployment_rate,
     
     -- scd2 validity windows

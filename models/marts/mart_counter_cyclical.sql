@@ -7,7 +7,7 @@ WITH store_weekly_metrics AS (
         f.store_id,
         f.partition_date,
         f.weekly_sales_amount_vnd,
-        s.cpi_index,
+        s.cpi,
         s.unemployment_rate,
         AVG(s.unemployment_rate) OVER (PARTITION BY f.store_id) AS avg_unemployment,
         STDDEV(s.unemployment_rate) OVER (PARTITION BY f.store_id) AS std_unemployment

@@ -21,7 +21,7 @@ cleansed AS (
         COALESCE(CAST(Is_holiday_week AS BOOL), FALSE) AS is_holiday_week,
 
         CAST(Fuel_price AS FLOAT64) AS fuel_price_amount_vnd,
-        CAST(CPI AS FLOAT64) AS cpi_index,
+        CAST(CPI AS FLOAT64) AS cpi,
         CAST(Unemployment AS FLOAT64) AS unemployment_rate
 
     FROM source
