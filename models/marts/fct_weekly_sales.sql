@@ -10,21 +10,36 @@
 
 WITH staging AS (
     SELECT * FROM {{ ref('stg_weekly_sales') }}
+),
+
+-- lookup the correct store_sk at the time of the sale
+store_sk_lookup AS (
+    SELECT
+        s.store_id,
+        s.store_sk,
+        s.valid_from,
+        s.valid_to
+    FROM {{ ref('dim_store') }} s
 )
 
 SELECT
     -- primary key
-    FARM_FINGERPRINT(CONCAT(CAST(store_id AS STRING), '|', CAST(partition_date AS STRING))) AS sales_sk,
+    FARM_FINGERPRINT(CONCAT(CAST(stg.store_id AS STRING), '|', CAST(stg.partition_date AS STRING))) AS sales_sk,
     
-    -- fk to dimensions
-    store_id,
-    partition_date,
-    is_holiday_week,
+    -- fk to dimensions (SK for dim_store, NK for dim_date)
+    sk.store_sk,
+    stg.store_id,
+    stg.partition_date,
+    stg.is_holiday_week,
     
     -- metrics
-    weekly_sales_amount_vnd,
-    is_invalid_sales,
+    stg.weekly_sales_amount_vnd,
+    stg.is_invalid_sales,
     
     CURRENT_TIMESTAMP() AS loaded_at
     
-FROM staging
+FROM staging stg
+LEFT JOIN store_sk_lookup sk
+    ON stg.store_id = sk.store_id
+    AND stg.partition_date >= sk.valid_from
+    AND stg.partition_date < sk.valid_to
