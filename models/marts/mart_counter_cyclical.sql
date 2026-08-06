@@ -1,5 +1,5 @@
 {{ config(
-    materialized='table'
+    materialized='view'
 ) }}
 
 WITH store_weekly_metrics AS (
@@ -13,8 +13,7 @@ WITH store_weekly_metrics AS (
         STDDEV(s.unemployment_rate) OVER (PARTITION BY f.store_id) AS std_unemployment
     FROM {{ ref('fct_weekly_sales') }} f
     JOIN {{ ref('dim_store') }} s 
-      ON f.store_id = s.store_id 
-      AND f.partition_date = s.valid_from
+      ON f.store_sk = s.store_sk
     WHERE f.is_invalid_sales = FALSE
 ),
 
