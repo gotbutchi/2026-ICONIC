@@ -13,7 +13,7 @@ SELECT
     SUM(weekly_sales_amount_vnd) AS total_monthly_sales,
     
     -- distinct store hll sketch
-    HLL_COUNT.INIT(CAST(store_id AS STRING)) AS active_stores_hll_sketch
+    HLL_COUNT.INIT(CAST(store_id AS STRING)) AS hll_store_id
     
 FROM fct
 GROUP BY 1, 2
