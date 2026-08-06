@@ -14,11 +14,11 @@ cleansed AS (
             SAFE.PARSE_DATE('%d/%m/%Y', REPLACE(Week_ending_date, '13/2019', '12/2019'))
         ) AS partition_date,
         
-        -- cast and flag negative sales
-        CAST(Weekly_Sales AS FLOAT64) AS weekly_sales_amount_vnd,
-        CAST(Weekly_Sales AS FLOAT64) <= 0 AS is_invalid_sales,
+        -- cast and flag negative/null sales
+        COALESCE(CAST(Weekly_Sales AS FLOAT64), 0.0) AS weekly_sales_amount_vnd,
+        COALESCE(CAST(Weekly_Sales AS FLOAT64), 0.0) <= 0 AS is_invalid_sales,
 
-        CAST(Is_holiday_week AS BOOL) AS is_holiday_week,
+        COALESCE(CAST(Is_holiday_week AS BOOL), FALSE) AS is_holiday_week,
 
         CAST(Fuel_price AS FLOAT64) AS fuel_price_amount_vnd,
         CAST(CPI AS FLOAT64) AS cpi_index,
