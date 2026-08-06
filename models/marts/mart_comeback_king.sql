@@ -2,50 +2,45 @@
     materialized='view'
 ) }}
 
-WITH monthly_sales AS (
-    SELECT
+WITH weekly_growth AS (
+    SELECT 
         store_id,
-        year_num,
-        month_num,
-        SUM(weekly_sales_amount_vnd) AS total_monthly_sales
+        partition_date,
+        weekly_sales_amount_vnd,
+        LAG(weekly_sales_amount_vnd) OVER (PARTITION BY store_id ORDER BY partition_date) AS prev_week_sales
     FROM {{ ref('fct_weekly_sales') }}
-    JOIN {{ ref('dim_date') }} ON fct_weekly_sales.partition_date = dim_date.date_id
-    GROUP BY 1, 2, 3
 ),
-
-growth_calc AS (
-    SELECT
-        store_id,
-        year_num,
-        month_num,
-        total_monthly_sales,
-        LAG(total_monthly_sales) OVER (PARTITION BY store_id ORDER BY year_num, month_num) AS prev_month_sales
-    FROM monthly_sales
+flag_negative_growth AS (
+    SELECT 
+        *,
+        (weekly_sales_amount_vnd - prev_week_sales) AS current_growth,
+        CASE WHEN (weekly_sales_amount_vnd - prev_week_sales) <= 0 THEN TRUE ELSE FALSE END AS is_negative_growth
+    FROM weekly_growth
 ),
-
-turnaround_metrics AS (
-    SELECT
-        store_id,
-        year_num,
-        month_num,
-        total_monthly_sales,
-        prev_month_sales,
-        (total_monthly_sales - prev_month_sales) AS sales_growth_abs,
-        SAFE_DIVIDE((total_monthly_sales - prev_month_sales), prev_month_sales) AS sales_growth_pct
-    FROM growth_calc
-    WHERE prev_month_sales IS NOT NULL
+next_4_weeks_calc AS (
+    SELECT 
+        *,
+        -- get total sales for the next 4 weeks
+        SUM(weekly_sales_amount_vnd) OVER (
+            PARTITION BY store_id 
+            ORDER BY partition_date 
+            ROWS BETWEEN 1 FOLLOWING AND 4 FOLLOWING
+        ) AS cumulative_sales_next_4_weeks,
+        
+        -- calculate cumulative sales of the past 4 weeks for ranking
+        SUM(weekly_sales_amount_vnd) OVER (
+            PARTITION BY store_id 
+            ORDER BY partition_date 
+            ROWS BETWEEN 3 PRECEDING AND CURRENT ROW
+        ) AS cumulative_sales_past_4_weeks
+    FROM flag_negative_growth
 )
-
-SELECT
+SELECT 
     store_id,
-    year_num,
-    month_num,
-    total_monthly_sales,
-    prev_month_sales,
-    sales_growth_abs,
-    sales_growth_pct,
-    RANK() OVER (ORDER BY sales_growth_abs DESC) AS comeback_rank_abs,
-    RANK() OVER (ORDER BY sales_growth_pct DESC) AS comeback_rank_pct
-FROM turnaround_metrics
-ORDER BY comeback_rank_abs ASC
-LIMIT 10
+    partition_date AS comeback_start_date,
+    cumulative_sales_next_4_weeks,
+    (cumulative_sales_next_4_weeks - cumulative_sales_past_4_weeks) AS absolute_comeback_growth
+FROM next_4_weeks_calc
+WHERE is_negative_growth = TRUE
+ORDER BY absolute_comeback_growth DESC
+LIMIT 1

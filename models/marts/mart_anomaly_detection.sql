@@ -2,41 +2,45 @@
     materialized='view'
 ) }}
 
-WITH store_stats AS (
-    SELECT
+WITH rolling_stats AS (
+    SELECT 
         store_id,
-        AVG(weekly_sales_amount_vnd) AS avg_sales,
-        STDDEV(weekly_sales_amount_vnd) AS stddev_sales
+        partition_date,
+        weekly_sales_amount_vnd,
+        
+        -- calculate 52-week rolling average (51 preceding weeks + current week)
+        AVG(weekly_sales_amount_vnd) OVER (
+            PARTITION BY store_id 
+            ORDER BY partition_date 
+            ROWS BETWEEN 51 PRECEDING AND CURRENT ROW
+        ) AS rolling_52w_avg,
+        
+        -- calculate 52-week rolling standard deviation
+        STDDEV_SAMP(weekly_sales_amount_vnd) OVER (
+            PARTITION BY store_id 
+            ORDER BY partition_date 
+            ROWS BETWEEN 51 PRECEDING AND CURRENT ROW
+        ) AS rolling_52w_stddev,
+        
+        -- count weeks to ensure enough data (avoid noise in early weeks)
+        COUNT(weekly_sales_amount_vnd) OVER (
+            PARTITION BY store_id 
+            ORDER BY partition_date 
+            ROWS BETWEEN 51 PRECEDING AND CURRENT ROW
+        ) AS weeks_counted
+
     FROM {{ ref('fct_weekly_sales') }}
-    WHERE is_invalid_sales = FALSE
-    GROUP BY 1
-),
-
-anomalies AS (
-    SELECT
-        f.store_id,
-        f.partition_date,
-        f.weekly_sales_amount_vnd,
-        s.avg_sales,
-        s.stddev_sales,
-        -- calculate z-score
-        ABS(f.weekly_sales_amount_vnd - s.avg_sales) / NULLIF(s.stddev_sales, 0) AS z_score
-    FROM {{ ref('fct_weekly_sales') }} f
-    JOIN store_stats s ON f.store_id = s.store_id
-    WHERE f.is_invalid_sales = FALSE
 )
-
-SELECT
+SELECT 
     store_id,
     partition_date,
     weekly_sales_amount_vnd,
-    avg_sales,
-    z_score,
-    CASE 
-        WHEN z_score > 3 AND weekly_sales_amount_vnd > avg_sales THEN 'Positive Anomaly (Spike)'
-        WHEN z_score > 3 AND weekly_sales_amount_vnd < avg_sales THEN 'Negative Anomaly (Drop)'
-        ELSE 'Normal'
-    END AS anomaly_type
-FROM anomalies
-WHERE z_score > 3
+    rolling_52w_avg,
+    rolling_52w_stddev,
+    -- calculate z-score based on rolling stats
+    SAFE_DIVIDE((weekly_sales_amount_vnd - rolling_52w_avg), rolling_52w_stddev) AS z_score
+FROM rolling_stats
+-- only evaluate when there is enough historical data (e.g. > 10 weeks) and z_score > 3
+WHERE weeks_counted > 10 
+  AND (weekly_sales_amount_vnd - rolling_52w_avg) > (3 * rolling_52w_stddev)
 ORDER BY z_score DESC
