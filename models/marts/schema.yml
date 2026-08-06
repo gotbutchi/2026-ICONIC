@@ -85,11 +85,20 @@ models:
         tests:
           - not_null
 
+  - name: mart_mom_sales_growth
+    description: "Exploratory: Top 10 store-months with the largest sales turnaround (MoM)"
+
+  - name: mart_overall_sales_anomaly
+    description: "Exploratory: Weeks with sales deviating more than 3 standard deviations (Overall History)"
+
+  - name: mart_unemployment_sales_impact
+    description: "Exploratory: Stores ranked by average sales during high-unemployment periods"
+
   - name: mart_comeback_king
-    description: "Top 10 store-months with the largest sales turnaround"
+    description: "Stores with the highest cumulative sales growth in the 4 weeks immediately following a week with negative/zero growth."
 
   - name: mart_anomaly_detection
-    description: "Weeks with sales deviating more than 3 standard deviations"
+    description: "Flash sales where sales are > 3 standard deviations above the 52-week rolling average."
 
   - name: mart_counter_cyclical
-    description: "Stores ranked by average sales during high-unemployment periods"
+    description: "Stores where fuel prices increased > 5% but sales still grew week-over-week."
