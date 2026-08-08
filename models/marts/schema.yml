@@ -90,7 +90,7 @@ models:
 
 
   - name: mart_unemployment_sales_impact
-    description: "Exploratory: Stores ranked by average sales during high-unemployment periods"
+    description: "Event-log calculating a Resilience Index (% vs Baseline) to identify stores that maintain or grow market share during high unemployment periods (Mean + 1 StdDev)."
 
   - name: mart_comeback_king
     description: "Event-tracking fact table containing all negative growth events and their subsequent 4-week sales performance, enabling interactive Comeback vs Fail King analysis."
