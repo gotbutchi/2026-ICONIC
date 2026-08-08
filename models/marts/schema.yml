@@ -96,7 +96,7 @@ models:
     description: "Event-tracking fact table containing all negative growth events and their subsequent 4-week sales performance, enabling interactive Comeback vs Fail King analysis."
 
   - name: mart_anomaly_detection
-    description: "Flash sales where sales are > 3 standard deviations above the 52-week rolling average."
+    description: "Evaluates weekly sales against a 52-week rolling average and standard deviation, classifying events as 'Normal', 'Positive Anomaly (Spike)', or 'Negative Anomaly (Drop)'."
 
   - name: mart_counter_cyclical
     description: "Stores where fuel prices increased > 5% but sales still grew week-over-week."

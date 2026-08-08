@@ -1,5 +1,5 @@
 {{ config(
-    materialized='view'
+    materialized='table'
 ) }}
 
 WITH rolling_stats AS (
@@ -15,14 +15,14 @@ WITH rolling_stats AS (
             ROWS BETWEEN 51 PRECEDING AND CURRENT ROW
         ) AS rolling_52w_avg,
         
-        -- calculate 52-week rolling standard deviation
+        -- calculate 52-week standard deviation
         STDDEV_SAMP(weekly_sales_amount_vnd) OVER (
             PARTITION BY store_id 
             ORDER BY partition_date 
             ROWS BETWEEN 51 PRECEDING AND CURRENT ROW
         ) AS rolling_52w_stddev,
         
-        -- count weeks to ensure enough data (avoid noise in early weeks)
+        -- count weeks to ensure large enough sample size
         COUNT(weekly_sales_amount_vnd) OVER (
             PARTITION BY store_id 
             ORDER BY partition_date 
@@ -30,6 +30,15 @@ WITH rolling_stats AS (
         ) AS weeks_counted
 
     FROM {{ ref('fct_weekly_sales') }}
+    WHERE is_invalid_sales = FALSE -- filter out invalid data
+),
+anomaly_scoring AS (
+    SELECT 
+        *,
+        -- calculate safe z-score (avoid divide by zero)
+        SAFE_DIVIDE((weekly_sales_amount_vnd - rolling_52w_avg), rolling_52w_stddev) AS z_score
+    FROM rolling_stats
+    WHERE weeks_counted > 10 -- ensure enough mature data before calculating z-score
 )
 SELECT 
     store_id,
@@ -37,10 +46,11 @@ SELECT
     weekly_sales_amount_vnd,
     rolling_52w_avg,
     rolling_52w_stddev,
-    -- calculate z-score based on rolling stats
-    SAFE_DIVIDE((weekly_sales_amount_vnd - rolling_52w_avg), rolling_52w_stddev) AS z_score
-FROM rolling_stats
--- only evaluate when there is enough historical data (e.g. > 10 weeks) and z_score > 3
-WHERE weeks_counted > 10 
-  AND (weekly_sales_amount_vnd - rolling_52w_avg) > (3 * rolling_52w_stddev)
-ORDER BY z_score DESC
+    z_score,
+    -- classify data into 3 distinct groups
+    CASE 
+        WHEN z_score > 3 THEN 'Positive Anomaly (Spike)'
+        WHEN z_score < -3 THEN 'Negative Anomaly (Drop)'
+        ELSE 'Normal' 
+    END AS anomaly_type
+FROM anomaly_scoring
