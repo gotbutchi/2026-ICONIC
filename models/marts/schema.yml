@@ -99,4 +99,4 @@ models:
     description: "Evaluates weekly sales against a 52-week rolling average and standard deviation, classifying events as 'Normal', 'Positive Anomaly (Spike)', or 'Negative Anomaly (Drop)'."
 
   - name: mart_counter_cyclical
-    description: "Stores where fuel prices increased > 5% but sales still grew week-over-week."
+    description: "Event-log tracking economic resilience (Counter-Cyclical vs Pro-Cyclical) by comparing weekly sales elasticity against fuel price inflation (>5%)."
