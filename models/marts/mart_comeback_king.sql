@@ -1,5 +1,5 @@
 {{ config(
-    materialized='view'
+    materialized='table'
 ) }}
 
 WITH weekly_growth AS (
@@ -47,10 +47,7 @@ SELECT
     store_id,
     partition_date AS comeback_start_date,
     cumulative_sales_next_4_weeks,
-    (cumulative_sales_next_4_weeks - cumulative_sales_past_4_weeks) AS absolute_comeback_growth,
-    ROW_NUMBER() OVER (
-        ORDER BY (cumulative_sales_next_4_weeks - cumulative_sales_past_4_weeks) DESC
-    ) AS comeback_rank
+    (cumulative_sales_next_4_weeks - cumulative_sales_past_4_weeks) AS absolute_comeback_growth
 FROM next_4_weeks_calc
 WHERE is_negative_growth = TRUE
   AND future_weeks_count = 4 -- filter out to ensure 4 future weeks available (No NULLs)

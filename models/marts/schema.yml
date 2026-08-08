@@ -93,7 +93,7 @@ models:
     description: "Exploratory: Stores ranked by average sales during high-unemployment periods"
 
   - name: mart_comeback_king
-    description: "Ranked list of stores based on their cumulative sales growth in the 4 weeks immediately following a week with negative/zero growth."
+    description: "Event-tracking fact table containing all negative growth events and their subsequent 4-week sales performance, enabling interactive Comeback vs Fail King analysis."
 
   - name: mart_anomaly_detection
     description: "Flash sales where sales are > 3 standard deviations above the 52-week rolling average."
