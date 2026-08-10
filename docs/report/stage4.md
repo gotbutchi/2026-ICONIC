@@ -2,7 +2,18 @@
 **Project:** Zero-PII Campaign Sandbox & AI Analytics Agent Platform  
 **Author:** Senior Analytics Engineer / BI Lead  
 **Target Audience:** THE ICONIC Executive Leadership (Marketing, E-commerce, Merchandising & Supply Chain Teams)  
-**Methodological Foundation:** Inspired by State-of-the-Art Research in Population-Scale Agentic Simulation (notably the *MatrAIx Framework*, Harvard/MIT/Stanford, 2026)
+**Methodological Foundation:** Inspired by published research on population-scale agentic
+simulation and LLM-based generative agents.
+
+> **Sourcing note, stated plainly.** The design patterns below -- persona-conditioned agents,
+> task specification tuples, automated outcome verification, statistical-fidelity testing
+> against real cohorts -- are drawn from the generative-agent simulation literature
+> (e.g. Park et al., *Generative Agents*, 2023, and subsequent population-scale
+> simulation work). Where this document references a "MatrAIx-inspired" pattern it means
+> *this class of architecture*, not an endorsement or a verified benchmark. Any quantitative
+> target attributed to external work below is labelled as an assumption to be validated in
+> our own Month-1 proof of concept, not as an established result. Nothing in this proposal
+> should be adopted on the strength of a citation alone.
 
 ---
 
@@ -115,7 +126,61 @@ graph TD
 
 > **Core Role:** The Analyst Agent (DataBot) serves as the primary conversational intelligence interface requested in Stage 4. All supporting components (Vector Stores, Digital Twins, Simulation Engine) function as the underlying infrastructure serving this Agent.
 
-### 3.1. Specialized Toolset & Function Signatures
+### 3.0. Tier 1 first: the agent that answers questions about what already happened
+
+The simulation platform below answers *"what would happen if?"*. Before earning the right to
+build it, an analytics agent has to answer *"what happened, and why?"* -- which is where most of
+the business's actual question volume sits, and which the brief's suggested toolset (SQL,
+Python, internal Slack logs) points directly at. Tier 1 ships first, in weeks rather than
+quarters, and doubles as the trust-building step for Tier 2.
+
+**What makes this credible rather than a text-to-SQL demo is that the semantic layer already
+exists in this repository.** The agent does not guess at schemas; it is grounded in artifacts
+Stages 1-3 produced.
+
+| Tool | Implementation | Grounding that stops hallucination |
+| :--- | :--- | :--- |
+| `query_warehouse(sql)` | Read-only BigQuery service account, restricted to the `dbt_marts` dataset, with a hard bytes-billed cap and mandatory dry-run first | Can only reach modelled marts, never raw PII tables |
+| `search_semantic_layer(question)` | Retrieval over `target/manifest.json` + `schema.yml` -- model descriptions, column descriptions, tests, lineage | The agent reads *our* definitions of a metric instead of inventing one |
+| `run_python(code)` | Sandboxed pandas/statsmodels for the work SQL is bad at: seasonal decomposition, elasticity regressions, significance testing | Keeps statistics out of hand-written SQL, where errors hide |
+| `search_slack_and_docs(query)` | Vector index over `#data-requests`, `#trading`, incident channels and Confluence -- **metadata and message text only, no customer records** | Supplies the business context a warehouse cannot: "was there a site outage that week?" |
+| `check_data_quality(model)` | Reads `run_results.json` and the DQ log (`sales_quality_code`, `is_date_recovered`) | The agent can say *"this figure excludes 2 flagged rows"* instead of quoting a number blind |
+
+**Guardrails, carried over from how this repo already works:**
+
+* **Read-only, cost-capped, dataset-scoped.** No writes, no raw-table access, dry-run before
+  every query.
+* **Every answer ships its SQL.** The query is part of the response, so any claim is
+  independently checkable -- the same principle as `scripts/verify_insights.py`.
+* **Sample size is mandatory.** If a result rests on fewer than ~30 observations the agent must
+  say so. This is not a nice-to-have: the "10% fuel threshold" in Stage 2 rests on 3
+  store-weeks, and an agent that reported it without n would have handed leadership a subsidy
+  recommendation built on three data points.
+* **Baseline choices must be declared.** Stage 3 showed that all-period versus trailing-52-week
+  baselines reverse the Store 35 conclusion. The agent states which baseline it used.
+* **Escalate rather than guess.** No matching model or ambiguous metric definition means route
+  to a human, mirroring the human-in-the-loop rule in `.agents/AGENTS.md`.
+
+**Worked example -- the question this repo gets asked most:**
+
+> **Merchandiser:** "Sales dropped in the last week of December. Should I be worried?"
+>
+> **DataBot:** *(`search_semantic_layer` -> finds `mart_anomaly_detection`, `dim_date`;
+> `query_warehouse` -> z-scores for that week; `search_slack_and_docs` -> no incidents logged)*
+>
+> "No -- this is seasonal, and it repeats. The week ending 2019-12-27 sits at 0.86x an average
+> week, and 2020-12-25 at 0.98x. Both follow the pre-Christmas peak (1.72x and 1.63x), and the
+> same post-holiday unwind appears in the Fail King log for both years. One caveat on the
+> source data: `Is_holiday_week` flags these post-Christmas weeks and *misses* the pre-Christmas
+> peak, so any dashboard segmenting on that raw field will read this backwards -- use
+> `dim_date.is_trading_peak_week`. Baseline: trailing 52 weeks, excluding the week scored.
+> [SQL shown]"
+
+That answer took 20 seconds and carries its own caveats, sample framing and a data-quality
+warning. It is also the honest sequencing argument for this proposal: **Tier 1 earns the
+credibility that Tier 2 spends.**
+
+### 3.1. Tier 2 -- Specialized Simulation Toolset & Function Signatures
 
 DataBot operates equipped with 5 dedicated tools that interact exclusively with the **Simulation Result Store**, ensuring no direct access to production databases:
 
@@ -244,10 +309,32 @@ To deliver rapid time-to-value without embarking on an open-ended technology pro
 
 ## 8. EXPECTED BUSINESS IMPACT & ROI
 
-* **Marketing Spend Optimization:** Expected reduction of up to **20% in media budget waste** after 2–3 campaign cycles as twins are calibrated, in line with reported agentic simulation benchmarks.
-* **Accelerated Decision Velocity:** Reduces time-to-insight from **3 weeks to 3–5 minutes**, expanding pre-launch testing capacity by 10x.
-* **Inventory Risk Reduction:** Assists Merchandising teams in forecasting category-level demand prior to committing capital to manufacturing volume orders.
-* **Data Security:** Achieves **Zero-PII exposure by design** within the business campaign testing sandbox.
+Two of these are structural properties of the design and can be committed to. Two are
+hypotheses that the Month-1 proof of concept exists to test, and they are labelled as such --
+quoting an unvalidated efficiency number as a benefit is how AI programmes lose executive
+trust in quarter two.
+
+**Committed (structural -- true by construction):**
+
+* **Data security:** **Zero-PII exposure by design** within the sandbox. The simulation store
+  holds `segment_id`, vectors and aggregate statistics; there is no field to leak.
+* **Decision velocity:** a simulation run returns in **3-5 minutes** against **2-4 weeks** for a
+  live A/B test. This is a property of not waiting for real traffic, not a forecast.
+
+**Hypotheses to validate (measure, do not assume):**
+
+* **Marketing spend efficiency:** *target* of a reduction in media waste after 2-3 calibration
+  cycles. **No external benchmark is being relied on for this figure.** It must be measured
+  against our own pre-agent baseline in the Month-1 PoC before it appears in any business case.
+* **Inventory risk reduction:** plausible for categories with historical depth, and explicitly
+  out of scope for genuinely novel assortments -- see the Novel Behaviour guardrail in
+  section 6. To be tested on one category, against actual sell-through.
+
+**The falsification criterion, agreed up front:** if historical campaign replay cannot hold
+relative error under ~15% on CTR/CVR for the pilot segment, the programme stops at Tier 1 (the
+warehouse agent in section 3.0, which delivers value regardless) rather than proceeding to
+rollout. Naming the kill condition before starting is what separates an investment from an
+enthusiasm.
 
 ---
 
