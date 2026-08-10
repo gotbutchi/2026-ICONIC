@@ -108,7 +108,7 @@ To deliver maximum commercial value, the presentation layer was split in two. Fi
 
 ### 4.1 The Analyst Agent Architecture (Campaign Simulation & Digital Twins)
 
-To scale analytical impact across THE ICONIC beyond passive reporting, I propose deploying **The Analyst Agent ("DataBot")** as a **Campaign Simulation Platform** powered by **Digital Customer Twins**:
+To scale analytical impact across THE ICONIC beyond passive reporting, I propose deploying **The Analyst Agent ("DataBot")** as a **Campaign Simulation Platform** powered by **Digital Customer Twins**. Inspired by state-of-the-art research in population-scale agentic simulation (notably the *MatrAIx Framework*, 2026), this platform operates entirely within a **Zero-PII sandbox**:
 
 ```text
 [ Feature Mart (BigQuery) ] ──(No PII Vectorization)──► [ Vector Store (Pinecone/Weaviate) ]
@@ -163,8 +163,8 @@ While AI handled syntax and boilerplate in seconds, I maintained strict architec
 
 *Defense Script for Executive Q&A on Stage 4:*
 
-> "Instead of building a passive SQL/Python bot that merely queries past transactions, I designed **The Analyst Agent ("DataBot")** as a **Campaign Simulation Platform** powered by **Digital Customer Twins**.
-> This platform addresses THE ICONIC's core marketing challenge: **How to test campaign scenarios and inventory risks in 3 minutes without spending real budget, annoying live customers, or exposing PII**—a capability particularly vital for fashion e-commerce due to high seasonality, short product lifecycles, and massive inventory risk. We encode customer attributes into vector embeddings within a Feature Mart to spawn synthetic virtual cohorts. When a Marketer wants to test a Flash Sale or a new Collection launch, they input parameters into a No-Code UI. In 3 minutes, Digital Twins simulate the journey, projecting CTR, CVR, AOV, margin cannibalization, and root causes for cart abandonment.
+> "Instead of building a passive SQL/Python bot that merely queries past transactions, I designed **The Analyst Agent ("DataBot")** as a **Campaign Simulation Platform** powered by **Digital Customer Twins**, drawing inspiration from the MatrAIx research framework.
+> This platform addresses THE ICONIC's core marketing challenge: **How to test campaign scenarios and inventory risks in 3 minutes without spending real budget, annoying live customers, or exposing PII**—a capability particularly vital for fashion e-commerce due to high seasonality, short product lifecycles, and massive inventory risk. We encode customer attributes into vector embeddings within a Feature Mart to spawn synthetic virtual cohorts. By ensuring **Zero-PII by design**, we can safely test these behaviors. When a Marketer wants to test a Flash Sale or a new Collection launch, they input parameters into a No-Code UI. In 3 minutes, Digital Twins simulate the journey, projecting CTR, CVR, AOV, margin cannibalization, and root causes for cart abandonment.
 > To ensure business trust, the system relies on a **4-Layer Validation Framework**:
 > 1. *Statistical Fidelity:* KS-tests ensuring twin distributions match real cohorts.
 > 2. *Behavioral Fidelity:* Historical campaign replays targeting Relative Error $< 15\%$ and Pearson Correlation $r \ge 0.7$.
