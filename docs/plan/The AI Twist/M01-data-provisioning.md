@@ -88,3 +88,28 @@ LIMIT 1000;
 ## Acceptance Criteria
 - All four `.csv` files exist locally. Table data (Comeback) contains ~20 rows, while Scatter Plot data contains ~1000 rows (easily handled by client-side parsing).
 - The CSV headers strictly match the column names defined in `schema.yml`.
+
+---
+
+## 🔄 Extended in [M05](M05-statistical-correction.md)
+
+The pipeline now exports **10** extracts rather than 4. The four originals gained columns; the
+six additions exist so the dashboard can qualify its own claims:
+
+| Extract | Purpose |
+| --- | --- |
+| `unemployment_mock_data.csv` | **+** `resilience_index_alltime` and `resilience_index_trailing` — both baselines, so the chart can expose the choice |
+| `comeback_king_mock_data.csv` | **+** `pct_comeback_growth` and `ranked_by` — 40 rows now (top/bottom 10 under *both* rankings) |
+| `anomaly_detection_mock_data.csv` | **+** `requires_investigation`, `is_holiday_week`, `baseline_weeks`, `has_full_52w_baseline` |
+| `counter_cyclical_mock_data.csv` | **+** `fuel_spike_bucket` — carries sample size into the BI layer |
+| `spike_weeks.csv` | **NEW** — stores flagged per week; the breadth-vs-intensity view that corrected the Black Friday claim |
+| `lfl_growth.csv` | **NEW** — like-for-like per store-week, identical Feb–Oct window each year |
+| `overall_kpis.csv` | Now covers the **whole feed** (6.74bn ₫, 143 weeks) instead of a truncated "Oct 2021 month" that in fact ended on the 22nd |
+| `top_10_stores.csv` | **+** `region_name` from the `store_region` seed |
+| `weekly_trend.csv` | **+** `is_trading_peak_week`, correcting the source holiday flag |
+| `data_quality_log.csv` | **NEW** — every row the models excluded, and why (`sales_quality_code`, `is_date_recovered`) |
+
+**Extended acceptance criteria:**
+- [x] No extract filters to a single favourable tail (the rule is now a comment at the top of `export_data.py`)
+- [x] Any metric with a methodological choice ships **both** variants, so the UI can expose it
+- [x] Every exported figure reproducible via `scripts/verify_insights.py` (DuckDB, independent of BigQuery)
