@@ -56,7 +56,9 @@ const AnomalyScatter = ({ selectedStoreId }) => {
               type="number" 
               dataKey="x" 
               name="52w Avg Baseline" 
-              tickFormatter={(val) => `${(val/1000000).toFixed(0)}M`}
+              {/* one decimal: baselines span 0.3M-3.8M, so whole millions collapse
+                  distinct ticks into a repeated "1M · 1M · 2M · 2M" axis */}
+              tickFormatter={(val) => `${(val/1000000).toFixed(1)}M`}
               stroke="#64748b"
               label={{ value: '52-Week Baseline Sales (VND)', position: 'insideBottom', offset: -10, fill: '#64748b', fontSize: 12 }}
             />
