@@ -56,6 +56,9 @@ export default function AgenticChatbot() {
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-emerald-400" />
               <span className="font-bold tracking-wide">ICONIC Data Agent</span>
+              <span className="text-[10px] uppercase tracking-wider bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded font-bold">
+                UI Prototype
+              </span>
             </div>
             <button onClick={() => setIsOpen(false)} className="hover:text-rose-400 transition-colors">
               <X className="w-5 h-5" />
@@ -94,6 +97,12 @@ export default function AgenticChatbot() {
 
           {/* Khung nhập (Dùng Suggestion Chips thay vì gõ text tự do) */}
           <div className="p-4 bg-white border-t border-slate-200">
+            <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 mb-3 leading-relaxed">
+              <strong>Prototype, not a live agent.</strong> This panel returns a scripted response to
+              illustrate the interface for the Stage 4 Analyst Agent. It is not connected to an LLM or to
+              BigQuery. The architecture and toolset it mocks up are specified in
+              <code className="mx-1">docs/report/stage4.md</code>.
+            </p>
             <p className="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wider">Suggested Queries</p>
             <div className="flex flex-col gap-2">
               <button 

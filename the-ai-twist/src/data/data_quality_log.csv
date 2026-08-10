@@ -1,0 +1,4 @@
+store_id,partition_date,sales_quality_code,is_date_recovered,weekly_sales_amount_vnd
+44,2019-02-22,MISSING,False,0.0
+42,2019-06-14,VALID,True,529418.64
+45,2021-03-19,NEGATIVE,False,-791835.37

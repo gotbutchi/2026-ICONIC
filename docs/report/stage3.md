@@ -2,78 +2,184 @@
 
 **Goal:** Build a functional tool and extract commercial value.
 
+---
+
 ## 1. The Build (Looker Studio)
+
 *Create an interactive dashboard that allows a user to explore these trends.*
 
-The Looker Studio dashboard is designed as a top-down **Executive Dashboard**, preventing information overload through a structured layout:
+The Looker Studio dashboard is a top-down **Executive Dashboard**, structured to avoid
+information overload:
 
-1. **1-Click Executive Scorecards:** The header elevates highly complex calculations into instant top-line metrics (e.g., "Net Sales Growth During Fuel Spikes: +0.69%"). This provides C-level executives with immediate, un-biased answers without requiring them to drill down.
-2. **Section 1: Overall Performance:** General Scorecards (Total Sales, Active Stores) + Weekly Sales Trend (Line) + Top 10 Stores by Sales Volume (Bar).
-3. **Section 2: Advanced Macro-Economic Insights:** A 2x2 Grid utilizing high-contrast visual paradigms:
-    * **Visual Benchmarking:** Scatter Plots (Fuel Price Elasticity Matrix & Unemployment Sensitivity) map macro-variables against standardized metrics ($Z\text{-score}$, Resilience Index) to visually isolate "vulnerable" vs "resilient" clusters.
-    * **Granular Actionability:** Data Bars and Heatmap Tables (Comeback Kings, High-Unemployment Champions) provide ranked, filterable targets for Operations teams to deploy localized interventions.
+1. **1-click executive scorecards.** The header turns multi-CTE window-function logic into
+   single top-line numbers -- e.g. "Net Sales Growth During Fuel Spikes: +0.69%" -- so a C-level
+   reader gets the answer without drilling. Each scorecard now carries its sample size, because
+   "+0.69%" means something different across 111 store-weeks than across 3.
+2. **Section 1 -- Overall performance.** Total sales, active stores, like-for-like growth,
+   weekly sales trend, top 10 stores by volume.
+3. **Section 2 -- Macro-economic insights (2x2 grid).**
+   * **Visual benchmarking:** scatter plots (fuel-price elasticity, unemployment sensitivity)
+     plot macro variables against *standardised* measures (z-score, resilience index) so
+     resilient and vulnerable clusters separate visually regardless of store size.
+   * **Granular actionability:** ranked, filterable tables (Comeback Kings, resilience
+     leaders) that an Operations team can act on store by store.
 
-*(Link to Live Looker Studio Dashboard provided in the root README)*
+A static export lives at
+[`DATA_STUDIO-THE_ICONIC_-_EXECUTIVE_SALES_&_INSIGHTS_DASHBOARD.pdf`](./DATA_STUDIO-THE_ICONIC_-_EXECUTIVE_SALES_&_INSIGHTS_DASHBOARD.pdf)
+so the submission stands on its own even if the live link's sharing permissions lapse.
 
 ---
 
 ## 2. The AI Twist
+
 *Use Gen-AI to build this asset in a language you do not usually work in.*
 
-To fulfill the "AI Twist" requirement, I utilized Generative AI to build a standalone, interactive web dashboard using **React.js, Tailwind CSS, and Recharts**. As a Data Analyst whose primary stack relies heavily on SQL and dbt, frontend web development is entirely outside my traditional scope.
+My working stack is SQL and dbt; frontend development is outside it. So the second dashboard
+is a standalone **React 19 + Tailwind CSS 4 + Recharts 3** application, built with Generative
+AI, in a Vite monorepo (`the-ai-twist/`) and continuously deployed to Vercel.
 
-The application was built as a Monorepo (`the-ai-twist/`) and deployed continuously via **Vercel**. 
-
-*(Link to Live Vercel Dashboard provided in the root README)*
+**Scope disclosure:** the app includes a floating "ICONIC Data Agent" chat panel. It is
+labelled **UI Prototype** in the interface and returns a scripted response -- it is not
+connected to an LLM or to BigQuery. It exists to visualise the interface for the Stage 4
+Analyst Agent, whose real architecture is specified in [`stage4.md`](./stage4.md). Everything
+else in the app is driven by real exported mart data.
 
 ---
 
 ## 3. The Methodology
+
 *Describe how you "prompted" your way to this build. What were the hurdles? How did you debug the AI's output?*
 
-To manage this "Zero-to-One" frontend build efficiently without disrupting the core data engineering repository, the workflow was strictly divided into independent modules:
-1. **Insight Mapping & Data Provisioning:** Mapped SQL metrics to UI components, then exported the 4 core datasets as static CSVs using an automated Python script (`scripts/export_data.py`) to bypass risky live backend API configurations.
-2. **Frontend Scaffolding:** Initialized the Vite/React environment, configured Tailwind CSS v4, and resolved local NPM permission issues (`EACCES`) via local cache overrides.
-3. **Component Engineering:** Directed the LLM to map the CSVs to Recharts UI components, enforcing a strict "High-Contrast Editorial" design system (Stark white, Emerald Green, Coral Red).
-4. **Deployment:** Generated a static production bundle for Vercel hosting.
+### Workflow: modular and disconnected
 
-### The Prompting Strategy (Zero-to-One)
-To build the React application securely without granting the LLM direct access to the corporate BigQuery database, I adopted a **"Schema-Driven, Disconnected"** prompting methodology:
+1. **Insight mapping and data provisioning.** Mapped each SQL measure to a UI component, then
+   exported the datasets as static CSVs via `scripts/export_data.py`, avoiding a live backend
+   credential path entirely.
+2. **Frontend scaffolding.** Vite + React, Tailwind v4 configuration, and a local NPM cache
+   override to work around `EACCES` permission errors.
+3. **Component engineering.** Directed the LLM to bind the CSVs to Recharts components under a
+   strict "high-contrast editorial" design system (stark white, emerald green, coral red).
+4. **Deployment.** Static production bundle on Vercel.
 
-1. **Context Injection:** I uploaded the compiled dbt SQL model (`mart_unemployment_sales_impact.sql`) to the LLM. This provided the AI with the exact semantic layer, column names, and business logic without exposing sensitive raw data.
-2. **Mock Data Provision:** Instead of asking the AI to write complex API fetching logic to a live database, I executed the query locally and exported a highly aggregated JSON array (Top 20 rows). I provided this static JSON to the LLM.
-3. **The Mega-Prompt:** I structured the initial prompt using persona assignment: *"Act as a Senior Frontend React Developer. I have a static JSON array representing macroeconomic retail data. Write a functional React component using Tailwind CSS for layout and Recharts for data visualization."*
+### The prompting strategy: "schema-driven, disconnected"
 
-### Hurdles & Debugging the AI's Output
-While the AI successfully generated the boilerplate React code and CSS classes, it struggled with data modeling biases and frontend data-binding quirks. I encountered and debugged five main hurdles:
+The LLM never received database credentials. It received:
 
-1. **Hurdle 1 - AI Data Selection Bias (The "Top N" Trap):** When initially prompted to generate SQL for the mock data extraction, the AI Agent heavily suffered from Selection Bias. For example, it generated `ORDER BY resilience_rank ASC LIMIT 30` and `WHERE anomaly_type = 'Positive Anomaly (Spike)'`. 
-* *Debugging:* I realized that exporting only the "top positive" outliers would completely destroy the visual baselines on the Scatter Plots and eliminate the "Critical Drops" and "Fail Kings" insights established in Stage 2. I intervened and manually corrected the AI's SQL queries by implementing `UNION ALL` to capture both extremes and using `ABS(z_score) > 3` to capture two-sided anomalies.
+1. **Context injection** -- the compiled dbt model SQL (e.g. `mart_unemployment_sales_impact.sql`),
+   which conveys the exact semantic layer, column names and business logic without exposing a
+   single row of data.
+2. **Aggregated mock data** -- I ran the query myself and handed over a small aggregated
+   extract, rather than asking the AI to write live API fetching logic.
+3. **A persona-assigned mega-prompt** -- *"Act as a Senior Frontend React Developer. I have a
+   static JSON array representing macroeconomic retail data. Write a functional React component
+   using Tailwind CSS for layout and Recharts for data visualization."*
 
-2. **Hurdle 2 - Recharts Data Shape Requirements:** The LLM initially passed the raw JSON directly into the Recharts `<Scatter/>` component. However, the chart rendered completely blank.
-* *Debugging:* I copied the exact React console warning and the Recharts documentation snippet into the prompt. The AI realized it needed to map the JSON array into the specific `{ x, y, z }` object format required by Recharts.
+The security property is structural: **the model could not have leaked production data,
+because it was never connected to any.**
 
-3. **Hurdle 3 - UI/UX Responsiveness:** The AI hardcoded the chart dimensions (e.g., `width={800} height={400}`), which caused the dashboard to break on smaller laptop screens.
-* *Debugging:* I prompted the AI to refactor the chart wrapper. I instructed it to use Recharts' `<ResponsiveContainer>` component and apply Tailwind's flexible grid classes (`grid-cols-1 md:grid-cols-2`), instantly transforming the rigid layout into a modern, responsive dashboard.
+### Hurdles and debugging
 
-4. **Hurdle 4 - CSV Async Import Bug in Vite:** The AI initially attempted to load the static CSVs via an asynchronous `fetch()` API call, which caused rendering delays and console warnings.
-* *Debugging:* During code review, I intervened and explicitly instructed the AI to use Vite's `?raw` string import suffix. This allowed PapaParse to synchronously parse the static text immediately on mount, vastly improving performance and avoiding async React state bugs.
+**Hurdle 1 -- AI data selection bias (the "Top N" trap).** Asked to generate the extraction
+SQL, the AI wrote `ORDER BY resilience_rank ASC LIMIT 30` and
+`WHERE anomaly_type = 'Positive Anomaly (Spike)'`.
 
-5. **Hurdle 5 - Formatting Artifacts in Recharts (The "850%" Bug):** On the Unemployment Scatter Plot, the X-Axis unexpectedly displayed values like `850%` instead of `8.5%`. The AI incorrectly assumed the raw CSV data was stored as decimals (e.g., `0.085`) and mathematically multiplied the value by 100 before passing it to Recharts.
-* *Debugging:* I reviewed the raw data extract and confirmed the values were already stored as whole numbers (`8.5`). I prompted the AI to remove the `* 100` data transformation and directly append the `%` symbol via the `<XAxis tickFormatter/>` prop.
+*Debug:* exporting only the favourable tail destroys the baseline a scatter plot needs and
+deletes the Critical Drops and Fail Kings that Stage 2 was built to surface. I rewrote the
+queries with `UNION ALL` across both extremes and `ABS(z_score) > 3` for two-sided anomalies.
+This is now a documented rule at the top of `export_data.py`, so the mistake cannot recur
+silently.
 
-### Cross-Validation via Looker Studio (Data Integrity)
-To ensure the LLM-generated React dashboard was not hallucinating numbers or misrepresenting trends, I strictly validated its visual outputs against my established **Looker Studio Dashboard**. By cross-referencing the React charts against the Looker Studio scorecards, I could confidently verify that the AI's data transformations were statistically accurate.
+**Hurdle 2 -- Recharts data shape.** The AI passed raw JSON into `<Scatter/>` and the chart
+rendered blank. *Debug:* pasted the exact console warning plus the relevant docs snippet into
+the prompt; the AI then mapped the array into the required `{ x, y, z }` shape. Feeding the
+error text verbatim was far more effective than describing the symptom.
+
+**Hurdle 3 -- Hardcoded chart dimensions.** `width={800} height={400}` broke the layout on
+smaller laptops. *Debug:* directed a refactor onto `<ResponsiveContainer>` plus Tailwind's
+`grid-cols-1 md:grid-cols-2`.
+
+**Hurdle 4 -- CSV async import bug in Vite.** The AI loaded CSVs via `fetch()`, producing
+render delays and state warnings. *Debug:* switched to Vite's `?raw` suffix so PapaParse
+parses synchronously on mount.
+
+**Hurdle 5 -- The "850%" formatting artifact.** The unemployment x-axis rendered `850%`
+instead of `8.5%`: the AI assumed decimals and multiplied by 100. *Debug:* checked the raw
+extract, confirmed values were already whole numbers, removed the transform and appended the
+symbol via `<XAxis tickFormatter/>`. Worth noting the general lesson -- **the AI's error was an
+assumption about the data, not about the code.** That class of bug is invisible unless someone
+who knows the data reviews the output.
+
+### Cross-validation: three independent checks
+
+Because an LLM will produce confident, well-formatted, wrong numbers, no figure was trusted
+until it agreed across independent paths:
+
+1. **React app vs Looker Studio** -- the two dashboards read the same marts through completely
+   different toolchains; disagreement means a transformation bug.
+2. **BigQuery vs DuckDB** -- `scripts/verify_insights.py` rebuilds the whole pipeline from
+   `raw/bia_data.csv` in DuckDB. Both engines return 169 spikes, 10 drops and a 12.88 peak
+   sigma. Two engines, one answer.
+3. **dbt tests** -- 74 assertions run on every build, including `accepted_values` on the exact
+   label strings the dashboard filters on, so a renamed category fails the build instead of
+   silently emptying a chart.
+
+### Auditing my own first pass
+
+The most useful review I did was of my own output, not the AI's. A first version of these
+insights shipped four numbers that did not survive a check against the source. I found them by
+recomputing every claim from the raw CSV rather than re-reading my own dashboard:
+
+| First-pass claim | What the data says | Root cause |
+| --- | --- | --- |
+| "80% of top-10 spikes are Black Friday" -- framed as *the* pattern | True of the top 10 by z-score, but pre-Christmas week moves **40 of 45 stores** vs Black Friday's 35, and repeats at 38 in 2020 | Ranked by peak intensity, reported as breadth |
+| "Stores 33 & 42 grew +9.39% / +9.21% under fuel stress" | **+1.35% / +0.56%** across *all* their fuel-spike weeks | Averaged only the weeks where sales rose -- conditioning on the outcome |
+| "10% fuel growth is the critical threshold -- deploy subsidies" | Directionally true, but **n = 3 store-weeks, one week, 3 stores** | Reported a pattern without its sample size |
+| "Store 35 holds a 130% Resilience Index" | 126% on an all-period baseline; **99.4%** on a trailing 52-week baseline | Baseline looked ahead and did not detrend -- a growth trend read as downturn resilience |
+
+Two things followed. First, each fix went into the **model**, not just the prose: both
+baselines now ship as columns, `fuel_spike_bucket` carries n into the BI layer, and
+`pct_comeback_growth` sits beside the absolute measure. The dashboard cannot present the
+flattering version without the honest one next to it. Second, the corrected findings are
+better than the originals -- a pattern that repeats across two Decembers is more useful than
+one that peaked once.
 
 ---
 
 ## 4. The Insights
+
 *Deliver 4-5 high-value insights found within the data.*
 
-The deployment of advanced Window Functions across our `dbt` mart layer surfaced the following actionable commercial insights (visualized in both dashboards):
+**1. All growth is organic, and it is modest.** The estate held at exactly 45 stores for all
+143 weeks -- no openings, no closures -- so no growth came from expansion. On a like-for-like
+basis (identical Feb 1 - Oct 22 window, compared per store-week to neutralise unequal week
+counts), sales grew **+1.8% from 2019 to 2021**. Total: 6.74bn VND, averaging 1.05M per
+store-week.
 
-1. **Stable Store Network Organic Growth:** Throughout the analyzed period, the store network scale remained completely stable at exactly 45 locations (with no new store openings or closures). Therefore, the 2.1% revenue growth was driven entirely by the organic growth of existing stores, rather than through network expansion.
-2. **Dual-Sided Anomaly Detection (Critical Drops):** The dashboard doesn't just celebrate "Flash Sales"; it proactively alerts Operations to "Critical Drops" (e.g., POS failures or severe local disruptions) against a clearly visible baseline. Using 52-week rolling z-scores effectively isolates true anomalies from predictable Q4 holiday spikes (e.g., Christmas), preventing false alarms.
-3. **Dominance of Black Friday:** 80% of the top 10 Flash Sale events occurred simultaneously on November 22, 2019. This proves that company-wide seasonal campaigns like Black Friday drive extraordinary multi-sigma bumps ($> 5\sigma$) across nearly all retail branches.
-4. **The Macroeconomic Collapse Threshold:** When fuel prices suffer a "thermal shock" exceeding $+12\%$, retail resilience completely collapses. Every single store plunges into "Pro-Cyclical" vulnerability, defining **$10\%$** as the absolute critical threshold where Executive Management must immediately deploy system-wide price subsidies or emergency promotional campaigns to prevent massive volume loss.
-5. **The Lipstick Effect (Store 35):** Over 21 distinct weeks of high unemployment, Store 35's sales surged, proving it benefits from consumer down-trading (attracting shoppers who abandoned more expensive competitors during economic downturns).
+**2. The calendar runs the business -- and the flag describing it is wrong.** 169 store-weeks
+breach +3 sigma, concentrated in five weeks, all in November and December. Black Friday week
+is the most *intense* (all top-10 spikes, peaking at 12.88 sigma); the **pre-Christmas week is
+the most broad** -- 40 of 45 stores in 2019, repeating with 38 in 2020. Yet the source's
+`Is_holiday_week` field flags the week *after* Christmas (0.86x an average week -- below
+average) and misses the week before it (1.72x -- the largest trading week on record). Any
+seasonality analysis built on the raw flag measures the wrong weeks. `dim_date` now publishes
+`is_trading_peak_week` to correct it.
+
+**3. Promotional elasticity is inversely related to store size.** Flagship Store 4 produced
+the biggest absolute Black Friday revenue (2.79M) at 9.45 sigma; Store 29, about a fifth of
+its size, hit **12.88 sigma** and nearly doubled its own baseline. Allocating campaign
+inventory by absolute volume systematically under-serves the stores that respond most.
+Actionable: weight Tier-2 branches in the next Black Friday allocation.
+
+**4. Anomaly monitoring was blind in one eye.** Scoring each week against a baseline that
+*excluded* it raised detected negative anomalies from **2 to 10**. Store 16 (-3.63) and Store
+35's three-week September 2019 slide are now visible and warrant an operational audit. A
+system reporting 2 incidents in three years does not look broken, which is precisely why this
+class of error survives.
+
+**5. Two headline "macro" stories shrink under scrutiny -- and one holds.** Above +10% fuel
+inflation every observed store turned pro-cyclical, but that is **3 store-weeks in one week**:
+worth an alert, not a subsidy budget. Store 35's "Lipstick Effect" disappears against a
+trailing baseline (126% to 99.4%); the genuine performers are Store 7 (114.9%, 27 weeks) and
+Store 16 (107.7%, 48 weeks). What does hold is the aggregate: across all 111 fuel-spike weeks
+the network still grew **+0.69%**, splitting 50/50 resilient to vulnerable. The reliable
+finding is network-level absorption of moderate inflation -- not individual invincible stores.

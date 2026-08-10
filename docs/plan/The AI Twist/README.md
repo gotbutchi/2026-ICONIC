@@ -23,6 +23,11 @@ Before starting any module, adhere to the following strict rules:
 - **Rule:** Do NOT blindly aggregate or filter data (e.g., naive `LIMIT` or `ORDER BY DESC`) if it destroys the baseline or hides negative outliers.
 - **Action:** Always ensure the data extracts reflect the "Full Statistical Reality". Use techniques like `UNION ALL` to capture both extremes (e.g., Comebacks vs. Fail Kings) and `ABS(z_score)` to capture two-sided anomalies, preventing selection bias in the frontend charts.
 
+### 5. Evidence Integrity (No Unsourced Numbers) — added in M05
+- **Rule:** Do NOT display a figure that cannot be reproduced from `raw/bia_data.csv`. Do NOT quote a threshold, average or ranking without its sample size.
+- **Action:** Verify every published number via `scripts/verify_insights.py`, which rebuilds the whole pipeline in DuckDB independently of BigQuery. Where a metric depends on a methodological choice (which baseline? absolute or relative?), **ship both and expose the choice as a UI control** rather than silently selecting the favourable one.
+- **Why this exists:** constraint 4 stopped the *extraction* from hiding outliers. It did not stop the *interpretation* from conditioning on the outcome — which is exactly what happened to four of five published insights. See [M05](M05-statistical-correction.md).
+
 ## 📝 Workflow & Artifact Documentation
 - **Rule:** The execution workflow is strictly modular. Progressing to the next module is forbidden until the current module is fully validated.
 - **Action:** Upon completion of each module (M00 -> M04), an explicit `[Module]-walkthrough.md` artifact MUST be generated in the `/docs/plan/The AI Twist/artifacts/` directory. This document must summarize:
@@ -43,3 +48,4 @@ Before starting any module, adhere to the following strict rules:
 | **[M035 - Improvement Plan & UI Polish](M035-improvement-plan.md)** | Fixing Data Bias, Scorecards, Top N Filters, Global Highlights | ✅ Completed |
 | **[M036 - UX & Onboarding Layer](artifacts/M036-walkthrough.md)** | Product Tour (`react-joyride`), Chart Legends, Definitions | ✅ Completed |
 | **[M04 - Deployment & Presentation](M04-deployment-presentation.md)** | Vercel deploy & README documentation | ✅ Completed |
+| **[M05 - Statistical Correction & Evidence Integrity](M05-statistical-correction.md)** | Re-verified every figure against raw source; fixed the anomaly baseline window (drops detected 2 → 10), corrected 4 over-stated insights, added baseline/ranking toggles, disclosed prototype scope. Tests 22 → 74. | ✅ Completed |
