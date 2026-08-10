@@ -4,6 +4,12 @@
 
 > **Note on Live Demo:** The Vercel link hosts the final "AI Twist" Executive Analytics Dashboard built in React. The Looker Studio link hosts the initial BI version.
 
+<p align="center">
+  <a href="https://the-ai-twist.vercel.app/">
+    <img src="images/Chatbot-feature.png" alt="The AI Twist Demo" width="100%"/>
+  </a>
+</p>
+
 ---
 
 ## TL;DR: Project Completion Master Checklist
