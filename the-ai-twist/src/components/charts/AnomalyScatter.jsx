@@ -25,6 +25,16 @@ const AnomalyScatter = ({ selectedStoreId }) => {
           <p>Z-Score: {d.y.toFixed(2)}</p>
           <p>Weekly Sales: {d.weekly_sales_amount_vnd?.toLocaleString()} VND</p>
           <p>52w Baseline: {d.x?.toLocaleString()} VND</p>
+          {/* baseline maturity: the feed starts 2019-02-01, so a full 52-week baseline
+              does not exist until 2020-01-31 -- disclose it rather than imply 52 always */}
+          <p className="text-slate-400">
+            Baseline built from {d.baseline_weeks} weeks{d.has_full_52w_baseline === false ? ' (expanding window)' : ''}
+          </p>
+          {d.requires_investigation === true && (
+            <p className="mt-2 pt-2 border-t border-slate-700 text-amber-400">
+              Flagged for investigation — no holiday week explains this
+            </p>
+          )}
         </div>
       );
     }
