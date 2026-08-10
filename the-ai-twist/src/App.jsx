@@ -7,6 +7,8 @@ import FuelElasticityMatrix from './components/charts/FuelElasticityMatrix';
 import UnemploymentScatter from './components/charts/UnemploymentScatter';
 import ExecutiveSummary from './components/ui/ExecutiveSummary';
 import OverallPerformance from './components/charts/OverallPerformance';
+import SpikeBreadthChart from './components/charts/SpikeBreadthChart';
+import DataQualityLog from './components/ui/DataQualityLog';
 import AgenticChatbot from './components/ui/AgenticChatbot';
 import TourGuide from './components/ui/TourGuide';
 import { Sparkles } from 'lucide-react';
@@ -62,6 +64,12 @@ function App() {
         <h2 className="text-2xl font-bold text-slate-900 mb-8 border-b border-slate-200 pb-2 uppercase tracking-wide">
           II. Advanced Insights
         </h2>
+
+        {/* Module 0: Spike breadth -- leads the section because it answers the question
+            the Executive Summary opens with: which weeks actually move the estate? */}
+        <section data-tour="step-3b">
+          <SpikeBreadthChart />
+        </section>
 
         {/* Module 1: Anomaly Detection */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6" data-tour="step-4">
@@ -120,8 +128,17 @@ function App() {
           </div>
         </section>
 
+        {/* Section III: Data quality, published rather than hidden */}
+        <h2 className="text-2xl font-bold text-slate-900 mb-8 border-b border-slate-200 pb-2 uppercase tracking-wide">
+          III. Data Quality &amp; Transparency
+        </h2>
+
+        <section data-tour="step-8">
+          <DataQualityLog />
+        </section>
+
       </main>
-      
+
       {/* Agentic Chatbot Mockup */}
       <AgenticChatbot />
 
