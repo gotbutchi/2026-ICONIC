@@ -27,10 +27,11 @@ This is a standalone, interactive React web application built as part of **THE I
 4. **Product Tour Guide:** Built-in `react-joyride` onboarding flow to guide Executive stakeholders through complex statistical charts (e.g., explaining how to read a 52-week rolling Z-score).
    <br/>
    ![User Guide](../images/User-Guide-feature.png)
-5. **The Analyst Agent (DataBot) UI:** A simulated chat interface to interact with the Campaign Simulation platform.
+5. **The Analyst Agent (DataBot) UI — prototype:** a chat interface illustrating how stakeholders would query the Stage 4 Campaign Simulation platform. **It is labelled "UI Prototype" in the interface and returns a scripted response — it is not connected to an LLM or to BigQuery.** The real architecture and toolset it mocks up are specified in [`docs/report/stage4.md`](../docs/report/stage4.md).
    <br/>
    ![Chatbot UI](../images/Chatbot-feature.png)
 6. **Responsive Editorial UI:** Designed with a high-contrast minimalist aesthetic (Stark White, Emerald Green, Coral Red) optimized for both desktop and mobile viewports.
+7. **Methodology exposed as UI controls:** where a metric depends on an analytical choice, the dashboard makes that choice switchable instead of deciding silently. The **resilience baseline** toggles between a trailing 52-week average (causal) and an all-period average — which moves Store 35 from 99.4% to 126% and reverses the "Lipstick Effect" conclusion. The **Comeback/Fail King ranking** toggles between absolute VND and size-neutral %, exposing that VND ranking mostly selects large stores. See [M05](../docs/plan/The%20AI%20Twist/M05-statistical-correction.md).
 
 ## 🛠️ Local Setup & Execution
 
