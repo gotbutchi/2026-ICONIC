@@ -17,8 +17,17 @@
 
     On this dataset the choice reverses the answer. Store 35 scores 126% on the
     all-period baseline but 99.4% on the trailing baseline -- its apparent
-    "down-trading" effect is a trend artifact. Stores 5 (110.6%) and 29 (107.7%)
-    survive both.
+    "down-trading" effect is a trend artifact. On the trailing baseline the genuine
+    performers are Store 7 (114.9%, 27 weeks) and Store 16 (107.7%, 48 weeks).
+
+    An earlier revision also emitted `weekly_resilience_index` as an alias of
+    resilience_index_alltime for dashboard back-compatibility. Both the Looker report
+    and the React app now bind the two explicit indices, so the alias has been
+    removed: it was a byte-for-byte duplicate column carrying no information.
+
+    baseline_sales_trailing_52w (and therefore resilience_index_trailing) is NULL for
+    each store's first week -- there is no prior window to average. 45 rows, one per
+    store, by construction; they are not tested not_null for that reason.
 */
 
 WITH store_weekly_metrics AS (
@@ -69,8 +78,4 @@ flagged_periods AS (
     FROM store_weekly_metrics
 )
 
-SELECT
-    *,
-    -- kept under the original name so existing dashboard fields keep resolving
-    resilience_index_alltime AS weekly_resilience_index
-FROM flagged_periods
+SELECT * FROM flagged_periods
