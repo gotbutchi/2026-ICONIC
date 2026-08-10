@@ -95,12 +95,16 @@ CLUSTER BY store_id;
 
 To better explain sales variance, the following 3 external theoretical datasets are proposed:
 
-1. **`dim_marketing_spend`** (Source: Google/Meta Ads API): Granularity by `partition_date` + `region_id`. 
-   * *Join Key:* `partition_date`. 
+1. **`dim_marketing_spend`** (Source: Google/Meta Ads API): 
+   * *Granularity:* `partition_date` (National level) or `partition_date` + `region_id`.
+   * *Join Key:* `partition_date` (and `region_id` resolved via `dim_store` if regional). 
+   * *Architectural Note:* If regional spend is provided, joining solely on `partition_date` against the Fact table will cause a **Cartesian Explosion (Fan-out)**, falsely multiplying sales. Granularity and Join Keys must perfectly align.
    * *Value:* Measures ROAS and differentiates organic holiday demand from paid promotion spikes.
-2. **`dim_weather_indices`** (Source: OpenWeatherMap): Precipitation and severe weather alerts. 
+2. **`dim_weather_indices`** (Source: OpenWeatherMap API): 
+   * *Granularity:* `store_id` + `partition_date` (Weekly aggregated).
    * *Join Key:* `store_id` + `partition_date`. 
-   * *Value:* Explains unexpected foot traffic drops (reducing false-positive anomalies).
-3. **`dim_competitor_pricing`** (Source: Web Scraping/Retail Intelligence): Price index and promo events. 
-   * *Join Key:* `partition_date` + `region_id`. 
+   * *Value:* Explains unexpected foot traffic drops due to extreme weather, reducing false-positive anomaly detections.
+3. **`dim_competitor_pricing`** (Source: Web Scraping/Retail Intelligence): 
+   * *Granularity:* `partition_date` + `region_id`.
+   * *Join Key:* `partition_date` + `region_id` (resolved via `dim_store`). 
    * *Value:* Isolates sales losses driven by competitor aggressive discounting rather than internal operational failure.

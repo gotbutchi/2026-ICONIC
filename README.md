@@ -20,7 +20,7 @@ Below is the detailed alignment between THE ICONIC's requirements and the delive
 | --- | --- | --- |
 | **1. Data Quality Audit** | Identified and resolved 3 critical source issues in `stg_weekly_sales.sql`:<br><br>1. Corrected invalid dates (e.g., `14/13/2019` -> `12/2019`).<br><br>2. Flagged zero/negative sales outliers (`is_invalid_sales`).<br><br>3. Enforced safe type casting & Null handling (`COALESCE`). | **DONE** |
 | **2. Schema Refactoring & DDL** | Designed a standard Kimball **Star Schema** (`fct_weekly_sales`, `dim_store`, `dim_date`).<br><br>• `dim_store` implements **SCD Type 2** (`valid_from`, `valid_to`, `is_current`, `store_sk`).<br><br>• Provided **BigQuery DDL** featuring `PARTITION BY partition_date` and `CLUSTER BY store_id`.<br><br>• Explained the benefits of preventing fan-out and optimizing scan costs for BI tools. | **DONE** |
-| **3. Proposed Data Ecosystem** | Proposed 3 theoretical external tables with explicit Join Keys:<br><br>1. `dim_marketing_spend` (Key: `partition_date` + `region_id`).<br><br>2. `dim_weather_indices` (Key: `store_id` + `partition_date`).<br><br>3. `dim_competitor_pricing` (Key: `partition_date` + `region_id`). | **DONE** |
+| **3. Proposed Data Ecosystem** | Proposed 3 external tables, explicitly defining Granularity and Join Keys to prevent **Cartesian Fan-out** data multiplication bugs:<br><br>1. `dim_marketing_spend` (Key: `partition_date` + `region_id` via `dim_store`).<br><br>2. `dim_weather_indices` (Key: `store_id` + `partition_date`).<br><br>3. `dim_competitor_pricing` (Key: `partition_date` + `region_id` via `dim_store`). | **DONE** |
 
 ### Stage 2: Advanced SQL Intelligence
 
