@@ -41,7 +41,7 @@ Below is the detailed alignment between THE ICONIC's requirements and the delive
 
 | Requirement | Delivered Solution | Status |
 | --- | --- | --- |
-| **1. The Analyst Agent** | Outlined the architecture of a **Slack AI Agent ("DataBot")** equipped with 3 core tools (`dbt_semantic_layer_tool`, `python_interpreter`, `root_cause_analyzer`) to autonomously answer business questions for Regional Managers. | **DONE** |
+| **1. The Analyst Agent** | Designed the architecture for a **Campaign Simulation Agent ("DataBot")** powered by **Digital Customer Twins**, equipped with 5 specialized tools (e.g., `query_simulation_result`, `what_if_calculator`) to test marketing scenarios in a Zero-PII sandbox. | **DONE** |
 | **2. Team Integration** | Detailed a **Human-Designed, AI-Generated** workflow utilizing AI as a Pair-Programmer to automate tedious BI tasks (dbt scaffolding, `schema.yml` generation, data quality test audits), while acting as a Senior Code Reviewer to solve 4 technical hurdles. | **DONE** |
 
 ## Final Submission Assets
@@ -162,7 +162,7 @@ While AI handled syntax and boilerplate in seconds, I maintained strict architec
 *Defense Script for Executive Q&A on Stage 4:*
 
 > "Instead of building a passive SQL/Python bot that merely queries past transactions, I designed **The Analyst Agent ("DataBot")** as a **Campaign Simulation Platform** powered by **Digital Customer Twins**.
-> This platform addresses THE ICONIC's core marketing challenge: **How to test campaign scenarios and inventory risks in 3 minutes without spending real budget, annoying live customers, or exposing PII**. We encode customer attributes into vector embeddings within a Feature Mart to spawn synthetic virtual cohorts. When a Marketer wants to test a Flash Sale or a new Collection launch, they input parameters into a No-Code UI. In 3 minutes, Digital Twins simulate the journey, projecting CTR, CVR, AOV, margin cannibalization, and root causes for cart abandonment.
+> This platform addresses THE ICONIC's core marketing challenge: **How to test campaign scenarios and inventory risks in 3 minutes without spending real budget, annoying live customers, or exposing PII**—a capability particularly vital for fashion e-commerce due to high seasonality, short product lifecycles, and massive inventory risk. We encode customer attributes into vector embeddings within a Feature Mart to spawn synthetic virtual cohorts. When a Marketer wants to test a Flash Sale or a new Collection launch, they input parameters into a No-Code UI. In 3 minutes, Digital Twins simulate the journey, projecting CTR, CVR, AOV, margin cannibalization, and root causes for cart abandonment.
 > To ensure business trust, the system relies on a **4-Layer Validation Framework**:
 > 1. *Statistical Fidelity:* KS-tests ensuring twin distributions match real cohorts.
 > 2. *Behavioral Fidelity:* Historical campaign replays targeting Relative Error $< 15\%$ and Pearson Correlation $r \ge 0.7$.
