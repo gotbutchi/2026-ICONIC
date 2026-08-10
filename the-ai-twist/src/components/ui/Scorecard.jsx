@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import Papa from 'papaparse';
 import rawData from '../../data/overall_kpis.csv?raw';
 import rawLfl from '../../data/lfl_growth.csv?raw';
+import rawFuel from '../../data/counter_cyclical_mock_data.csv?raw';
 
 export default function Scorecard() {
   const data = useMemo(() => {
@@ -23,6 +24,17 @@ export default function Scorecard() {
     };
   }, []);
 
+  // Net sales growth across EVERY week where fuel rose >5% -- not only the weeks where
+  // sales happened to rise. Averaging the favourable subset overstates resilience ~7x.
+  const fuel = useMemo(() => {
+    const rows = Papa.parse(rawFuel, { header: true, dynamicTyping: true })
+      .data.filter(r => r.store_id && r.sales_growth_pct !== null);
+    if (!rows.length) return null;
+    const mean = rows.reduce((a, r) => a + r.sales_growth_pct, 0) / rows.length;
+    const resilient = rows.filter(r => r.sales_growth_pct > 0).length;
+    return { pct: mean * 100, n: rows.length, resilientShare: (resilient / rows.length) * 100 };
+  }, []);
+
   const formatBn = (val) => (!val ? '0 ₫' : (val / 1000000000).toFixed(2) + 'bn ₫');
   const formatM = (val) => (!val ? '0 ₫' : (val / 1000000).toFixed(2) + 'M ₫');
 
@@ -34,7 +46,7 @@ export default function Scorecard() {
           Rows failing data-quality checks are excluded, never silently dropped.
         </p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
         {/* KPI 1: Total Sales */}
         <div className="p-4 border-l-4 border-emerald-500 bg-slate-50 shadow-sm">
           <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Total Sales (VND)</p>
@@ -64,6 +76,19 @@ export default function Scorecard() {
           </p>
           <p className="text-xs text-slate-400 mt-1">
             {lfl ? `${lfl.from} vs ${lfl.to}, per store-week, same Feb–Oct window` : ''}
+          </p>
+        </div>
+
+        {/* KPI 5: resilience to fuel inflation -- the headline macro number, with its n */}
+        <div className="p-4 border-l-4 border-slate-300 bg-slate-50 shadow-sm">
+          <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">
+            Net Growth in Fuel Spikes
+          </p>
+          <p className="text-3xl font-light text-slate-900">
+            {fuel ? (fuel.pct > 0 ? '+' : '') + fuel.pct.toFixed(2) + '%' : '—'}
+          </p>
+          <p className="text-xs text-slate-400 mt-1">
+            {fuel ? `across all n=${fuel.n} weeks with fuel >5% · ${fuel.resilientShare.toFixed(0)}% resilient` : ''}
           </p>
         </div>
       </div>

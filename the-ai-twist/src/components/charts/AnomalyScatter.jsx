@@ -25,6 +25,16 @@ const AnomalyScatter = ({ selectedStoreId }) => {
           <p>Z-Score: {d.y.toFixed(2)}</p>
           <p>Weekly Sales: {d.weekly_sales_amount_vnd?.toLocaleString()} VND</p>
           <p>52w Baseline: {d.x?.toLocaleString()} VND</p>
+          {/* baseline maturity: the feed starts 2019-02-01, so a full 52-week baseline
+              does not exist until 2020-01-31 -- disclose it rather than imply 52 always */}
+          <p className="text-slate-400">
+            Baseline built from {d.baseline_weeks} weeks{d.has_full_52w_baseline === false ? ' (expanding window)' : ''}
+          </p>
+          {d.requires_investigation === true && (
+            <p className="mt-2 pt-2 border-t border-slate-700 text-amber-400">
+              Flagged for investigation — no holiday week explains this
+            </p>
+          )}
         </div>
       );
     }
@@ -42,11 +52,14 @@ const AnomalyScatter = ({ selectedStoreId }) => {
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis 
-              type="number" 
-              dataKey="x" 
-              name="52w Avg Baseline" 
-              tickFormatter={(val) => `${(val/1000000).toFixed(0)}M`}
+            {/* One decimal on the X ticks: baselines span roughly 0.3M-3.8M VND, so
+                whole millions collapse distinct ticks into a repeated
+                "0M · 1M · 1M · 2M · 2M" axis. */}
+            <XAxis
+              type="number"
+              dataKey="x"
+              name="52w Avg Baseline"
+              tickFormatter={(val) => `${(val/1000000).toFixed(1)}M`}
               stroke="#64748b"
               label={{ value: '52-Week Baseline Sales (VND)', position: 'insideBottom', offset: -10, fill: '#64748b', fontSize: 12 }}
             />

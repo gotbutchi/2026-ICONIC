@@ -22,6 +22,11 @@ const FuelElasticityMatrix = ({ selectedStoreId }) => {
           <p>Date: {new Date(d.partition_date).toLocaleDateString()}</p>
           <p>Fuel Inflation: +{d.x.toFixed(2)}%</p>
           <p>Sales Growth: {d.y > 0 ? '+' : ''}{d.y.toFixed(2)}%</p>
+          {/* sample size travels with the point, so a 3-observation cluster cannot be
+              mistaken for a network-wide pattern */}
+          <p className="mt-2 pt-2 border-t border-slate-700 text-slate-300">
+            Evidence band: {d.fuel_spike_bucket}
+          </p>
         </div>
       );
     }
@@ -57,7 +62,9 @@ const FuelElasticityMatrix = ({ selectedStoreId }) => {
             />
             <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
             
-            <ReferenceLine x={10} stroke="#f59e0b" strokeDasharray="3 3" label={{ position: 'insideTopRight', value: '10% Vulnerability Threshold', fill: '#f59e0b', fontSize: 12 }} />
+            {/* Labelled with n, because everything to the right of this line is 3 observations
+                from a single week (2021-10-08) -- a hypothesis, not a funded threshold. */}
+            <ReferenceLine x={10} stroke="#f59e0b" strokeDasharray="3 3" label={{ position: 'insideTopRight', value: '10% threshold — only n=3 store-weeks beyond', fill: '#f59e0b', fontSize: 11 }} />
             <ReferenceLine y={0} stroke="#64748b" />
             
             <Scatter name="Elasticity" data={data}>
