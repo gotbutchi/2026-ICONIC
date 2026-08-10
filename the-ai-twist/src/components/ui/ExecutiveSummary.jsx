@@ -12,7 +12,7 @@ export default function ExecutiveSummary() {
         </div>
         <ul className="space-y-3 text-sm text-slate-700 leading-relaxed list-disc list-inside">
           <li>
-            <strong>Network Stability:</strong> The 45-store footprint demonstrates robust baseline stability, generating 184.3M ₫ in total sales. The network inherently resists moderate inflation, achieving a +0.69% net growth during standard fuel spikes.
+            <strong>Network Stability:</strong> The 45-store footprint demonstrates robust baseline stability, generating 184.4M ₫ in total sales. The network inherently resists moderate inflation, achieving a +0.69% net growth during standard fuel spikes.
           </li>
           <li>
             <strong>Promotional Elasticity:</strong> Mega-campaigns (e.g., Black Friday) drive 80% of multi-sigma sales spikes. Crucially, medium-volume Tier-2 stores exhibit significantly higher relative promotional elasticity than high-volume flagship branches.

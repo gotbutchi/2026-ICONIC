@@ -13,13 +13,32 @@ This is a standalone, interactive React web application built as part of **THE I
 - **Data Parsing:** PapaParse (for client-side CSV parsing)
 - **Deployment:** Vercel (Continuous Deployment via Monorepo Architecture)
 
-## ✨ Key Features
+## ✨ Key Features & Gallery
+
+<p align="center">
+  <img src="../images/Onboarding-feature.png" alt="Onboarding Feature" width="100%"/>
+</p>
 
 1. **Schema-Driven Data Binding:** The dashboard visualizes pre-aggregated data (Top 10 Comeback Kings, Anomaly Events) exported directly from BigQuery/dbt models without requiring a live database connection (Zero-PII exposure).
 2. **Interactive Scatter Plots:** Explores macro-economic elasticity, mapping `Unemployment Rate` and `Fuel Price Spikes` against standardized `Resilience Indices` and `Z-Scores`.
-3. **Cross-Filtering (Store 14 Case Study):** Global state interactions allow users to highlight specific entities (e.g., highlighting Store 14 across multiple charts) to uncover hidden insights like extreme seasonality.
+3. **Cross-Filtering & Highlighting:** Global state interactions allow users to highlight specific entities (e.g., highlighting Store 14 across multiple charts) to uncover hidden insights like extreme seasonality.
+   <br/>
+   <p align="center">
+     <img src="../images/Highlight-store-feature.png" alt="Highlight Store" width="48%"/>
+     &nbsp;
+     <img src="../images/Filter-store-feature.png" alt="Filter Store" width="48%"/>
+   </p>
 4. **Product Tour Guide:** Built-in `react-joyride` onboarding flow to guide Executive stakeholders through complex statistical charts (e.g., explaining how to read a 52-week rolling Z-score).
-5. **Responsive Editorial UI:** Designed with a high-contrast minimalist aesthetic (Stark White, Emerald Green, Coral Red) optimized for both desktop and mobile viewports.
+   <br/>
+   <p align="center">
+     <img src="../images/User-Guide-feature.png" alt="User Guide" width="80%"/>
+   </p>
+5. **The Analyst Agent (DataBot) UI:** A simulated chat interface to interact with the Campaign Simulation platform.
+   <br/>
+   <p align="center">
+     <img src="../images/Chatbot-feature.png" alt="Chatbot UI" width="80%"/>
+   </p>
+6. **Responsive Editorial UI:** Designed with a high-contrast minimalist aesthetic (Stark White, Emerald Green, Coral Red) optimized for both desktop and mobile viewports.
 
 ## 🛠️ Local Setup & Execution
 
