@@ -33,6 +33,43 @@ The raw flat CSV was decomposed into a dimensional model:
 * **Analytical Marts:** Materialized as `VIEW`s to ensure real-time freshness on-demand.
 
 **Standard DDL Architecture (BigQuery Syntax):**
+
+```mermaid
+erDiagram
+    fct_weekly_sales }|--|| dim_store : "store_sk"
+    fct_weekly_sales }|--|| dim_date : "partition_date"
+    
+    fct_weekly_sales {
+        string store_sk FK
+        int store_id "Degenerate Dim"
+        date partition_date FK
+        float weekly_sales
+        float fuel_price
+        boolean is_holiday
+    }
+    
+    dim_store {
+        string store_sk PK
+        int store_id
+        int region_id
+        int size
+        string store_type
+        float unemployment_rate
+        float cpi
+        date valid_from
+        date valid_to
+        boolean is_current
+    }
+    
+    dim_date {
+        date partition_date PK
+        int year
+        int month
+        int week
+        boolean is_holiday
+    }
+```
+
 ```sql
 -- DDL for Dimension: dim_store (SCD Type 2)
 CREATE TABLE `the_iconic.dim_store` (
