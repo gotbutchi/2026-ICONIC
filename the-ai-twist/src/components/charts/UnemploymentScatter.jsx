@@ -1,17 +1,26 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import Papa from 'papaparse';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
 import rawData from '../../data/unemployment_mock_data.csv?raw';
 
 const UnemploymentScatter = ({ selectedStoreId }) => {
+  // The baseline is not a cosmetic choice: an all-period average looks ahead and
+  // does not detrend, so a store that simply grew scores above 100% regardless of
+  // unemployment. Toggling to the trailing baseline moves Store 35 from 126% to
+  // 99.4%. Both ship in the mart so the difference stays auditable.
+  const [baseline, setBaseline] = useState('trailing');
+
   const data = useMemo(() => {
     const parsed = Papa.parse(rawData, { header: true, dynamicTyping: true });
-    return parsed.data.filter(row => row.store_id).map(row => ({
-      ...row,
-      x: row.unemployment_rate, // Already in percentage format (e.g., 8.5)
-      y: row.weekly_resilience_index * 100 // Convert to percentage
-    }));
-  }, []);
+    const key = baseline === 'trailing' ? 'resilience_index_trailing' : 'resilience_index_alltime';
+    return parsed.data
+      .filter(row => row.store_id && row[key])
+      .map(row => ({
+        ...row,
+        x: row.unemployment_rate, // Already in percentage format (e.g., 8.5)
+        y: row[key] * 100 // Convert to percentage
+      }));
+  }, [baseline]);
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -30,9 +39,22 @@ const UnemploymentScatter = ({ selectedStoreId }) => {
 
   return (
     <div className="w-full h-full bg-white border border-slate-200 shadow-sm p-4 flex flex-col">
-      <h3 className="text-lg font-bold text-slate-900 mb-1 px-2">Unemployment Resilience (The Lipstick Effect)</h3>
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-1 px-2">
+        <h3 className="text-lg font-bold text-slate-900">Unemployment Resilience (The Lipstick Effect)</h3>
+        <select
+          value={baseline}
+          onChange={(e) => setBaseline(e.target.value)}
+          className="bg-slate-50 border border-slate-200 text-sm rounded px-2 py-1 text-slate-700 focus:outline-none focus:border-emerald-500"
+        >
+          <option value="trailing">Baseline: trailing 52w (causal)</option>
+          <option value="alltime">Baseline: all-period avg</option>
+        </select>
+      </div>
       <p className="text-xs text-slate-500 mb-1 px-2 leading-relaxed">
-        <strong>Definition (The Lipstick Effect):</strong> Identify "High Resilience" stores that maintain robust sales growth even when regional unemployment rates escalate beyond the network average of 8%, successfully capturing down-trading consumers.
+        <strong>Definition:</strong> stores that hold sales when their own regional unemployment exceeds their
+        mean + 1σ, i.e. that capture down-trading consumers. <strong>Switch the baseline</strong> to see why the
+        measure matters: Store 35 reads 126% against its whole-period average but 99.4% against a trailing
+        52-week average — the first looks ahead and does not detrend.
       </p>
       <p className="text-xs text-slate-500 mb-4 px-2 italic">(🟢 High Resilience | 🔴 Low Resilience | X-axis: Unemployment % | Y-axis: Resilience Index)</p>
       <div className="flex-1 min-h-[400px]">
