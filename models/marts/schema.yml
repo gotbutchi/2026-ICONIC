@@ -1,8 +1,20 @@
 version: 2
 
+# Every column of every built model is documented here. Verified by diffing
+# INFORMATION_SCHEMA.COLUMNS against this file -- an undocumented column in a mart is a
+# column a BI user has to guess at.
+#
+# Deliberate near-duplicates are called out in the descriptions below. The rule applied:
+# a derived column stays only if it removes real work from the BI layer (a filter toggle,
+# an axis label, a like-for-like guard). Anything carrying no information beyond another
+# column has been removed -- see the retired `weekly_resilience_index` alias in
+# mart_unemployment_sales_impact.
+
 models:
   - name: fct_weekly_sales
-    description: "Weekly sales transactions per store. Grain: 1 row = 1 store x 1 week."
+    description: >
+      Weekly sales transactions per store. Grain: 1 row = 1 store x 1 week.
+      Monthly-partitioned on partition_date and clustered on store_id.
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -11,12 +23,15 @@ models:
               - partition_date
     columns:
       - name: sales_sk
-        description: "Primary key (hash of store_id + partition_date)"
+        description: "Primary key. FARM_FINGERPRINT of store_id | partition_date, so INT64 not STRING."
         tests:
           - unique
           - not_null
       - name: store_sk
-        description: "FK to dim_store (surrogate key, point-in-time)"
+        description: >
+          FK to dim_store, resolved point-in-time (partition_date >= valid_from AND
+          < valid_to). Use this, not store_id, when joining to dim_store: store_id matches
+          every version of a store and fans the fact table out.
         tests:
           - not_null
           - relationships:
@@ -24,11 +39,14 @@ models:
                 to: ref('dim_store')
                 field: store_sk
       - name: store_id
-        description: "Natural key for store (kept for readability)"
+        description: >
+          Natural key, retained as a degenerate dimension. Kept alongside store_sk on
+          purpose: every analytical mart groups by store_id, and requiring a dim_store
+          join just to read a store number would add cost and a fan-out risk for no gain.
         tests:
           - not_null
       - name: partition_date
-        description: "FK to dim_date"
+        description: "Week-ending date (always a Friday). FK to dim_date and the partition key."
         tests:
           - not_null
           - relationships:
@@ -36,31 +54,49 @@ models:
                 to: ref('dim_date')
                 field: date_id
       - name: is_holiday_week
-        description: "Whether the week contains a holiday, as flagged by the source"
+        description: >
+          Holiday flag exactly as published by the source feed. See DQ-4: it marks the week
+          after Christmas and misses the week before, so use dim_date.is_trading_peak_week
+          for seasonality analysis.
         tests:
           - not_null
       - name: weekly_sales_amount_vnd
-        description: "Weekly sales measure"
+        description: "Reporting sales measure. NULL source values are defaulted to 0 and flagged via sales_quality_code."
+        tests:
+          - not_null
+      - name: is_invalid_sales
+        description: >
+          TRUE where the row must be excluded from analytics. Strictly derivable from
+          sales_quality_code <> 'VALID', and retained anyway: every mart's WHERE clause uses
+          it, and a boolean predicate is cheaper to read and filter on in BI than a string
+          comparison.
         tests:
           - not_null
       - name: sales_quality_code
-        description: "Data-quality lineage carried from staging"
+        description: "Why a row is or is not usable: VALID, MISSING, NEGATIVE or ZERO. Carries the reason that is_invalid_sales loses."
         tests:
           - not_null
           - accepted_values:
               arguments:
                 values: ["VALID", "MISSING", "NEGATIVE", "ZERO"]
-      - name: is_invalid_sales
-        description: "TRUE where the row must be excluded from analytics"
+      - name: is_date_recovered
+        description: "TRUE where partition_date was reconstructed rather than parsed (DQ-1). Exactly one row: store 42, 2019-06-14."
         tests:
           - not_null
+      - name: loaded_at
+        description: >
+          Audit timestamp of the run that materialised the row. Note this makes a
+          full-refresh non-idempotent (every rebuild rewrites it); acceptable for an audit
+          column, but it is why row-level diffing between runs is not meaningful.
 
   - name: dim_store
     description: >
-      Point-in-time store dimension with SCD Type 2 mechanics over the weekly
-      economic indicators, plus static region attributes from the store_region seed.
+      Point-in-time store dimension. SCD Type 2 mechanics over the weekly economic
+      indicators, plus static region attributes from the store_region seed.
+      Honest scope note: the source republishes the indicators every week, so this table
+      versions weekly by construction -- a weekly point-in-time snapshot rather than a
+      classic slowly-changing dimension.
     tests:
-      # a version window must be well-formed, and versions must not overlap
       - dbt_utils.expression_is_true:
           arguments:
             expression: "valid_from < valid_to"
@@ -71,63 +107,119 @@ models:
               - valid_from
     columns:
       - name: store_sk
-        description: "Primary key (surrogate)"
+        description: "Primary key. FARM_FINGERPRINT of store_id | valid_from (INT64)."
         tests:
           - unique
           - not_null
       - name: store_id
-        description: "Natural key (not unique -- SCD2 has multiple rows per store)"
+        description: "Natural key. Not unique -- one row per store per validity window."
         tests:
           - not_null
       - name: region_id
-        description: "Static region key; join grain for the proposed external tables"
+        description: "Static region key (Type 1). The join grain for the external tables proposed in Stage 1.3."
         tests:
           - not_null
       - name: region_name
-        description: "Human-readable region"
+        description: >
+          Human-readable region. Synthetic placeholder: the source feed carries no geography,
+          so store_region assigns regions round-robin by store_id. Label it as synthetic
+          anywhere it appears in a dashboard.
         tests:
           - not_null
           - accepted_values:
               arguments:
                 values: ["NSW", "VIC", "QLD", "WA"]
+      - name: fuel_price_amount_vnd
+        description: >
+          Regional fuel price in force during this validity window (Type 2 attribute).
+          NULL in exactly 1 row: store 42 / 2019-06-14, the DQ-1 record, whose source row
+          has an empty Fuel_price as well as the corrupt date. Deliberately NOT tested
+          not_null -- the pipeline's contract is to flag bad source data, not to invent a
+          value for it. Downstream, mart_counter_cyclical drops that week from fuel
+          analysis because its fuel_growth_pct cannot be computed.
+      - name: cpi
+        description: "Consumer Price Index during this validity window (Type 2 attribute)."
+        tests:
+          - not_null
+      - name: unemployment_rate
+        description: "Regional unemployment rate in whole percent (8.5 means 8.5%). Type 2 attribute."
+        tests:
+          - not_null
       - name: valid_from
-        description: "Start of this version's validity window (inclusive)"
+        description: "Start of this version's validity window, inclusive."
         tests:
           - not_null
       - name: valid_to
-        description: "End of this version's validity window (exclusive); 9999-12-31 when current"
+        description: "End of this version's validity window, exclusive. 9999-12-31 sentinel when current."
         tests:
           - not_null
       - name: is_current
-        description: "TRUE for the latest version of each store"
+        description: "TRUE for the latest version of each store. Marks the last week present in the feed, not a live business state."
         tests:
           - not_null
 
   - name: dim_date
     description: >
-      Date spine from 2019 to 2026 with trading-calendar context. Carries both the
-      source holiday flag and the corrected commercial peak flags (see DQ-4).
+      Calendar spine, 2019-2026, with trading-calendar context. Carries both the source
+      holiday flag and the corrected commercial peak flags (DQ-4).
     columns:
       - name: date_id
-        description: "Date primary key"
+        description: "Date primary key."
         tests:
           - unique
           - not_null
+      - name: year_num
+        description: "Calendar year."
+        tests:
+          - not_null
+      - name: month_num
+        description: "Calendar month, 1-12."
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 12
+      - name: week_num
+        description: "BigQuery EXTRACT(WEEK) -- Sunday-based week number. Use iso_week_num for standards-compliant reporting."
+        tests:
+          - not_null
+      - name: iso_week_num
+        description: "ISO-8601 week number (Monday-based). Preferred for any external comparison."
+        tests:
+          - not_null
+      - name: day_of_week_num
+        description: "BigQuery EXTRACT(DAYOFWEEK): 1 = Sunday through 7 = Saturday. Every feed date is 6 (Friday)."
+        tests:
+          - not_null
+      - name: year_month
+        description: "YYYY-MM label. Exists so BI axes sort chronologically as strings without a composite sort key."
+        tests:
+          - not_null
+      - name: is_weekend
+        description: "TRUE for Saturday and Sunday. Calendar-derived; not consumed by any current mart."
+        tests:
+          - not_null
       - name: is_holiday
-        description: "Flag as published by the source feed"
+        description: "Holiday flag as published by the source feed. Commercially misaligned -- see DQ-4."
         tests:
           - not_null
       - name: is_pre_christmas_week
-        description: "The peak trading week that the source holiday flag misses"
+        description: "December 15-24. The peak trading week the source holiday flag misses (1.72x an average week in 2019)."
         tests:
           - not_null
       - name: is_trading_peak_week
-        description: "Source holiday flag OR pre-Christmas peak; use this for seasonality analysis"
+        description: >
+          is_holiday OR is_pre_christmas_week. Derived, and retained because it is the single
+          field a BI user should filter on for seasonality -- pushing that OR into every
+          dashboard filter is how the DQ-4 mistake gets reintroduced.
         tests:
           - not_null
 
   - name: agg_monthly_sales
-    description: "Monthly sales rollup. Grain: 1 row = 1 year x 1 month."
+    description: >
+      Monthly rollup. Grain: 1 row = 1 year x 1 month. Excludes invalid sales rows so
+      totals reconcile with every mart.
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -136,111 +228,237 @@ models:
               - month_num
     columns:
       - name: year_num
-        description: "Year component of the month"
+        description: "Year component of the month."
         tests:
           - not_null
       - name: month_num
-        description: "Month component"
+        description: "Month component, 1-12."
         tests:
           - not_null
       - name: year_month
-        description: "YYYY-MM label for BI axis sorting"
+        description: "YYYY-MM label for BI axis sorting."
         tests:
           - not_null
       - name: total_monthly_sales
-        description: "Sum of valid weekly sales for the month"
+        description: "Sum of valid weekly sales in the month."
         tests:
           - not_null
       - name: weeks_in_month
-        description: "Number of week-ending dates in the month (4 or 5) -- required context for any MoM figure"
+        description: >
+          Count of week-ending dates in the month: 4 or 5. Required context for any MoM
+          figure -- an unguarded month-over-month comparison swings ~20% purely on this.
         tests:
           - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 4
+                max_value: 5
       - name: active_stores
-        description: "Exact distinct store count"
+        description: >
+          Exact COUNT(DISTINCT store_id). An earlier revision used an HLL sketch here; at 45
+          stores that was less accurate, more expensive to read and never merged downstream,
+          so it was replaced.
+        tests:
+          - not_null
+      - name: avg_weekly_sales_in_month
+        description: >
+          total_monthly_sales / weeks_in_month. Derived, and retained because it is the only
+          month-level measure comparable across 4- and 5-week months.
         tests:
           - not_null
       - name: is_partial_month
-        description: "TRUE where the feed does not cover the whole calendar month"
+        description: "TRUE where the feed does not cover the whole calendar month. Exactly one month qualifies: 2021-10, which ends on the 22nd."
         tests:
           - not_null
 
   - name: mart_mom_sales_growth
     description: >
-      Month-over-month growth per store at full grain. Filter is_comparable = TRUE for
-      like-for-like figures; unguarded MoM on weekly data swings ~20% purely on
-      4- vs 5-week month boundaries.
+      Month-over-month growth per store at full grain (no LIMIT, no hardcoded ranking).
+      Filter is_comparable = TRUE for any figure shown to a stakeholder.
     columns:
       - name: store_id
+        description: "Store natural key."
+        tests:
+          - not_null
+      - name: year_num
+        description: "Year of the current month."
+        tests:
+          - not_null
+      - name: month_num
+        description: "Month of the current month, 1-12."
+        tests:
+          - not_null
+      - name: year_month
+        description: "YYYY-MM label for BI axis sorting."
+        tests:
+          - not_null
+      - name: total_monthly_sales
+        description: "Valid sales for this store-month."
+        tests:
+          - not_null
+      - name: prev_month_sales
+        description: "Previous month's total for the same store. Rows without a predecessor are excluded, so never NULL."
+        tests:
+          - not_null
+      - name: weeks_in_month
+        description: "Trading weeks in the current month (4 or 5)."
+        tests:
+          - not_null
+      - name: prev_weeks_in_month
+        description: "Trading weeks in the previous month. Compared against weeks_in_month to set is_comparable."
+        tests:
+          - not_null
+      - name: sales_growth_abs
+        description: "total_monthly_sales - prev_month_sales, in VND."
+        tests:
+          - not_null
+      - name: sales_growth_pct
+        description: >
+          The same delta as a ratio. Distorted whenever the two months hold different week
+          counts -- check is_comparable before quoting it.
         tests:
           - not_null
       - name: is_comparable
-        description: "TRUE only when both months are complete and have equal week counts"
+        description: "TRUE only when both months are complete and hold equal week counts. 404 of 1,440 pairs qualify."
+        tests:
+          - not_null
+      - name: avg_weekly_growth_pct
+        description: >
+          Growth of the per-week average rather than the monthly total. Week-count neutral,
+          so it stays valid across 4- vs 5-week month boundaries where sales_growth_pct does not.
         tests:
           - not_null
 
   - name: mart_unemployment_sales_impact
     description: >
-      Event log scoring store resilience during high-unemployment weeks (per-store
-      mean + 1 stddev). Publishes both an all-period and a trailing-52-week baseline;
-      the trailing one is causal and is the one to quote.
+      Event log scoring store resilience during high-unemployment weeks (per-store mean +
+      1 stddev). Publishes an all-period and a trailing-52-week baseline; the trailing one
+      is causal and is the one to quote.
     columns:
       - name: store_id
+        description: "Store natural key."
         tests:
           - not_null
       - name: partition_date
+        description: "Week-ending date."
         tests:
           - not_null
+      - name: weekly_sales_amount_vnd
+        description: "Valid weekly sales for the store-week being scored."
+        tests:
+          - not_null
+      - name: unemployment_rate
+        description: "Regional unemployment for that week, in whole percent (8.5 = 8.5%). Do NOT multiply by 100 in the BI layer."
+        tests:
+          - not_null
+      - name: baseline_sales_alltime
+        description: "The store's mean weekly sales across the whole feed. Look-ahead and not detrended -- published for contrast, not for claims."
+        tests:
+          - not_null
+      - name: baseline_sales_trailing_52w
+        description: >
+          The store's mean weekly sales over the 52 weeks preceding this one. NULL for each
+          store's first week (45 rows) because no prior window exists -- deliberately not
+          tested not_null.
       - name: is_high_unemployment_period
+        description: "TRUE where the store's own unemployment exceeds its mean + 1 stddev."
         tests:
           - not_null
       - name: resilience_index_alltime
-        description: "Sales vs the store's whole-period average. Looks ahead; does not detrend."
+        description: "Sales / baseline_sales_alltime. Store 35 reads 126% on this basis."
+        tests:
+          - not_null
       - name: resilience_index_trailing
-        description: "Sales vs the store's trailing 52-week average. Preferred measure."
+        description: >
+          Sales / baseline_sales_trailing_52w. The causal measure -- Store 35 reads 99.4%
+          here, which reverses the "Lipstick Effect" conclusion. NULL where the trailing
+          baseline is NULL.
 
   - name: mart_comeback_king
     description: >
       Event log of every negative-growth week and the 4-week trajectory that followed,
-      supporting both Comeback King and Fail King analysis. Publishes absolute and
-      percentage growth so store size can be controlled for.
+      supporting Comeback King and Fail King analysis from one table. Ranking is left to
+      the BI layer rather than hardcoded.
     columns:
       - name: store_id
+        description: "Store natural key."
         tests:
           - not_null
       - name: comeback_start_date
+        description: "The negative-growth week that triggered the event. Date grain for this mart."
+        tests:
+          - not_null
+      - name: cumulative_sales_past_4_weeks
+        description: "Sales over the trigger week and the 3 before it -- the comparison base."
+        tests:
+          - not_null
+      - name: cumulative_sales_next_4_weeks
+        description: "Sales over the 4 weeks after the trigger. Rows without 4 future weeks are excluded, so never NULL."
         tests:
           - not_null
       - name: absolute_comeback_growth
-        description: "Next 4 weeks minus prior 4 weeks, in VND"
+        description: >
+          next_4_weeks - past_4_weeks, in VND. The measure the brief asks for, and one that
+          mostly ranks store size: the top 10 average a store-size rank of 7 of 45.
         tests:
           - not_null
       - name: pct_comeback_growth
-        description: "Same measure, size-neutral"
+        description: >
+          The same delta over the base. Size-neutral (top 10 average size rank 27 of 45),
+          which is what makes the absolute ranking auditable rather than assumed.
         tests:
           - not_null
 
   - name: mart_anomaly_detection
     description: >
-      Weekly sales scored against a trailing 52-week rolling mean and standard
-      deviation that EXCLUDE the week under test, classifying events as Normal,
-      Positive Anomaly (Spike) or Negative Anomaly (Drop).
+      Weekly sales scored against a trailing 52-week mean and standard deviation that
+      EXCLUDE the week under test. Including it suppressed detection badly: 2 negative
+      anomalies became 10, and peak sigma 5.72 became 12.88.
     columns:
       - name: store_id
+        description: "Store natural key."
         tests:
           - not_null
       - name: partition_date
+        description: "Week-ending date being scored."
+        tests:
+          - not_null
+      - name: is_holiday_week
+        description: "Source holiday flag, carried through so a spike can be triaged against the calendar."
+        tests:
+          - not_null
+      - name: weekly_sales_amount_vnd
+        description: "Valid weekly sales for the store-week being scored."
+        tests:
+          - not_null
+      - name: rolling_52w_avg
+        description: "Mean of the up-to-52 weeks preceding this one. The baseline the z-score is measured against."
+        tests:
+          - not_null
+      - name: rolling_52w_stddev
+        description: "Sample standard deviation over the same trailing window."
         tests:
           - not_null
       - name: baseline_weeks
-        description: "Weeks informing the baseline; < 52 means an expanding window"
+        description: >
+          How many weeks actually informed the baseline. Below 52 the window is still
+          expanding -- the feed starts 2019-02-01, so a full 52-week baseline does not exist
+          until 2020-01-31, and every headline spike predates that.
         tests:
           - not_null
       - name: has_full_52w_baseline
-        description: "FALSE before 2020-01-31, since the feed starts 2019-02-01"
+        description: >
+          baseline_weeks >= 52. Derived, and retained because it is a one-click BI filter for
+          "mature baselines only"; a numeric threshold retyped into each chart is how the
+          caveat gets dropped.
+        tests:
+          - not_null
+      - name: z_score
+        description: "(sales - rolling_52w_avg) / rolling_52w_stddev. SAFE_DIVIDE, so NULL if sigma were ever 0; none occur."
         tests:
           - not_null
       - name: anomaly_type
-        description: "Classification label consumed directly by dashboard filters"
+        description: "WHAT happened statistically. Consumed directly by dashboard filters, so the exact strings are contract-tested."
         tests:
           - not_null
           - accepted_values:
@@ -251,26 +469,58 @@ models:
                   - "Normal"
       - name: requires_investigation
         description: >
-          Operations triage toggle. TRUE for every negative anomaly, and for positive
-          anomalies that no flagged holiday week explains. Adds only what anomaly_type
-          does not already carry, rather than restating it as a second label.
+          WHETHER TO ACT. TRUE for every drop, and for spikes no flagged holiday week
+          explains. A boolean rather than a second label, so it adds only what anomaly_type
+          does not already carry.
         tests:
           - not_null
 
   - name: mart_counter_cyclical
     description: >
-      Event log tracking economic resilience by comparing weekly sales growth against
-      fuel-price inflation. Retains all store-weeks so that per-store averages are
-      taken over every fuel-spike week, not only the favourable ones.
+      Event log comparing weekly sales growth against fuel-price inflation. Retains all
+      store-weeks so per-store averages are taken over every fuel-spike week, not only the
+      favourable ones -- averaging the favourable subset overstates resilience ~7x.
     columns:
       - name: store_id
+        description: "Store natural key."
         tests:
           - not_null
       - name: partition_date
+        description: "Week-ending date."
         tests:
           - not_null
+      - name: weekly_sales_amount_vnd
+        description: "Valid weekly sales for this store-week."
+        tests:
+          - not_null
+      - name: fuel_price_amount_vnd
+        description: >
+          Regional fuel price for this store-week, resolved point-in-time via store_sk.
+          NULL in 1 row (the DQ-1 record, whose source fuel price is empty), so not tested
+          not_null.
+      - name: sales_growth_pct
+        description: "Week-over-week sales growth as a ratio (0.05 = +5%). Format as Percent in BI; do not multiply."
+        tests:
+          - not_null
+      - name: fuel_growth_pct
+        description: >
+          Week-over-week fuel-price growth as a ratio. Same formatting note. NULL in 1 row,
+          inherited from the missing source fuel price above; that week is therefore absent
+          from every fuel-spike aggregate, which is the correct behaviour.
+      - name: fuel_spike_bucket
+        description: >
+          Sample-size band, so n travels with the number into the BI layer. Only 3 store-weeks
+          in the whole feed exceed +10% fuel growth, all on 2021-10-08.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - ">10% (n=3 store-weeks)"
+                  - "5-10% (n=108 store-weeks)"
+                  - "<=5%"
       - name: economic_trend_type
-        description: "Classification label consumed directly by dashboard filters"
+        description: "Classification label consumed directly by dashboard filters, so the exact strings are contract-tested."
         tests:
           - not_null
           - accepted_values:
@@ -279,7 +529,3 @@ models:
                   - "Counter-Cyclical (Resilient)"
                   - "Pro-Cyclical (Vulnerable)"
                   - "Normal / Neutral"
-      - name: fuel_spike_bucket
-        description: "Sample size context; >10% fuel growth exists in only 3 store-weeks"
-        tests:
-          - not_null

@@ -74,13 +74,20 @@ models:
           - not_null
 
       - name: fuel_price_amount_vnd
-        description: "Cost of fuel in the region"
+        description: >
+          Regional fuel price. NULL in exactly 1 row (DQ-3): store 42 / 2019-06-14, the same
+          record that carries the corrupt date. Deliberately not tested not_null -- flagging
+          bad source data is the contract; inventing a value is not.
 
       - name: cpi
-        description: "Consumer Price Index"
+        description: "Consumer Price Index for the region that week."
+        tests:
+          - not_null
 
       - name: unemployment_rate
-        description: "Unemployment rate in the region"
+        description: "Regional unemployment rate in whole percent (8.5 means 8.5%), not a decimal."
+        tests:
+          - not_null
 
 seeds:
   - name: store_region
