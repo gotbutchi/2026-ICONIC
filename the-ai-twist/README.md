@@ -1,16 +1,55 @@
-# React + Vite
+# The AI Twist: Executive Retail Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+**Live Demo:** [https://the-ai-twist.vercel.app/](https://the-ai-twist.vercel.app/)
 
-Currently, two official plugins are available:
+This is a standalone, interactive React web application built as part of **THE ICONIC BI & Data Insights Challenge (Stage 3)**. It serves as a dynamic presentation layer for the advanced macroeconomic and operational insights derived from the dbt Star Schema models.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Tech Stack
 
-## React Compiler
+- **Framework:** React.js (Bootstrapped with Vite)
+- **Styling:** Tailwind CSS v4
+- **Data Visualization:** Recharts (Interactive Data Grids, Scatter Plots, and Line Charts)
+- **Onboarding/UX:** React Joyride (Interactive Product Tour Guide)
+- **Data Parsing:** PapaParse (for client-side CSV parsing)
+- **Deployment:** Vercel (Continuous Deployment via Monorepo Architecture)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## ✨ Key Features
 
-## Expanding the Oxlint configuration
+1. **Schema-Driven Data Binding:** The dashboard visualizes pre-aggregated data (Top 10 Comeback Kings, Anomaly Events) exported directly from BigQuery/dbt models without requiring a live database connection (Zero-PII exposure).
+2. **Interactive Scatter Plots:** Explores macro-economic elasticity, mapping `Unemployment Rate` and `Fuel Price Spikes` against standardized `Resilience Indices` and `Z-Scores`.
+3. **Cross-Filtering (Store 14 Case Study):** Global state interactions allow users to highlight specific entities (e.g., highlighting Store 14 across multiple charts) to uncover hidden insights like extreme seasonality.
+4. **Product Tour Guide:** Built-in `react-joyride` onboarding flow to guide Executive stakeholders through complex statistical charts (e.g., explaining how to read a 52-week rolling Z-score).
+5. **Responsive Editorial UI:** Designed with a high-contrast minimalist aesthetic (Stark White, Emerald Green, Coral Red) optimized for both desktop and mobile viewports.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## 🛠️ Local Setup & Execution
+
+To run this React application locally on your machine:
+
+### 1. Prerequisites
+Ensure you have [Node.js](https://nodejs.org/) (v18+) and npm installed.
+
+### 2. Installation
+Navigate into the web app directory and install dependencies:
+```bash
+cd the-ai-twist
+npm install
+```
+
+### 3. Start the Development Server
+Run the Vite development server:
+```bash
+npm run dev
+```
+The application will be available at `http://localhost:5173`.
+
+### 4. Build for Production
+To generate a static production bundle (output to the `dist/` folder):
+```bash
+npm run build
+```
+
+## 📁 Data Source Architecture (Disconnected Prompting)
+
+For security and performance, this dashboard does not connect directly to a live database. Instead, it relies on static CSV datasets located in the `/public/data/` or `src/data/` directory.
+
+These datasets were generated via a local Python script (`scripts/export_data.py` in the root repository) which queried the `mart_` layer of the BigQuery data warehouse. This **"Disconnected Architecture"** ensures that the dashboard operates instantly, at zero compute cost, while perfectly preserving the statistical integrity of the underlying dbt models.
