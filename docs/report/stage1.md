@@ -15,6 +15,12 @@
 
 *Identify 3 critical issues in the data source (`bi_data.csv`) that would break an automated pipeline.*
 
+> **Answering with four.** The brief asks for three, and DQ-1 to DQ-3 below are those three
+> — they break a pipeline loudly. DQ-4 is included because it is the one that would have
+> cost the most: it breaks nothing, passes every schema test, and quietly inverts a
+> commercial conclusion. A data-quality audit that only looks for crashes would have
+> shipped it.
+
 Four issues were found. The first three are the ones the brief asks for; the fourth is the
 one that would have done the most commercial damage, because it does not break a pipeline
 at all -- it silently inverts an answer.

@@ -19,6 +19,14 @@ A critical data bias was discovered during the code review of the Python data pi
 - Inject `WHERE is_invalid_sales = FALSE` across all new direct `fct` queries.
 - Apply `partition_date` filter exclusively to the KPI query to lock the Total Sales anchor at ~184.3M ₫.
 
+> ⚠️ **SUPERSEDED by [M05](M05-statistical-correction.md).** That date filter was
+> `2021-10-01` to `2021-10-31` and the resulting 184.3M ₫ was labelled as October 2021.
+> The feed ends on **2021-10-22**, so the anchor was a 4-week partial month presented as
+> a month — and Looker's automatic "vs previous 31 days" comparison on top of it produced
+> the unsourced "+2.1% growth" that appeared in the early reports. The scorecards now
+> report the whole feed (**6.74bn ₫ across 143 weeks**) plus an explicit like-for-like
+> figure (+1.8%, identical Feb–Oct window each year, per store-week).
+
 ### 2. Component Development
 - **`ExecutiveSummary.jsx`**: Create a 2-column grid displaying the bullet points for "Executive Summary" and "Strategic Actions to Take" using Tailwind `bg-slate-50`.
 - **`Scorecard.jsx`**: Implement a `formatCurrency` helper. Parse the single row of KPI data to display Total Sales, Active Stores, and Avg Weekly Sales.
@@ -28,7 +36,9 @@ A critical data bias was discovered during the code review of the Python data pi
 - Insert the new modules at the top of `App.jsx`, right below the Header, structurally dividing the dashboard into **"I. Overall Performance"** and **"II. Advanced Insights"**.
 
 ## Acceptance Criteria
-- `Total Sales` correctly formats to `184.3M ₫`.
+- ~~`Total Sales` correctly formats to `184.3M ₫`.~~ **Retired in M05** — the anchor was a
+  partial month. Now `6.74bn ₫` over the full 143-week feed, with the coverage stated on
+  the card.
 - The Line Chart has no dots (`dot={false}`) and displays the full unbounded historical trend.
 - The UI retains its Minimalist Editorial aesthetic without visual clutter.
 

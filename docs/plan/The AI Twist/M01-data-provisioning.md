@@ -30,7 +30,17 @@ To ensure evaluators can easily reproduce the exact datasets used in the dashboa
 *(Note: The SQL queries executed by this script are designed to capture the "Full Statistical Reality". They use `UNION ALL` to fetch both Comeback and Fail Kings, and `ABS(z_score) > 3` to capture two-sided anomalies, preventing UI selection bias).*
 
 ### The Underlying SQL Logic (Anti-Bias Ensured)
-For transparency, these are the exact SQL queries executed by the Python script:
+
+> ⚠️ **The four queries below are the M01-era versions and are SUPERSEDED — see the
+> [M05 addendum](#-extended-in-m05) at the foot of this document for what
+> `export_data.py` actually runs today.** They are kept for the audit trail. Two things
+> changed materially: the `LIMIT 1000` caps were removed (they silently truncated the
+> event logs), and the unemployment and comeback queries now select both baselines and
+> both rankings so the BI layer can expose the methodological choice instead of the
+> extract deciding it. The pipeline now exports 10 files, not 4.
+
+For transparency, these are the exact SQL queries executed by the Python script *at the
+time of M01*:
 
 #### 1. `unemployment_mock_data.csv`
 *(Objective: Identify the most resilient stores during high unemployment periods)*

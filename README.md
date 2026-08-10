@@ -249,7 +249,7 @@ To maximize focus on high-value data architecture, dimensional modeling, and com
 * **dbt Project Scaffolding:** AI generated the initial dbt directory structures, `profiles.yml`, and `dbt_project.yml` configurations.
 * **Boilerplate `schema.yml` Generation:** AI automatically drafted data dictionaries, column descriptions, and repetitive dbt constraint tests (`not_null`, `unique`, `relationships`) across staging and mart layers.
 * **SQL Staging & DDL Scaffolding:** AI wrote standard type-casting boilerplate (`CAST`, `COALESCE`), cleansed malformed dates (`SAFE.PARSE_DATE`), and scaffolded BigQuery DDL syntax with `PARTITION BY` and `CLUSTER BY` clauses.
-* **Window Function Boilerplate:** AI generated complex CTE skeletons and rolling window frames (`AVG() OVER`, `STDDEV_SAMP() OVER 51 PRECEDING`).
+* **Window Function Boilerplate:** AI generated complex CTE skeletons and rolling window frames (`AVG() OVER`, `STDDEV_SAMP() OVER`). Note the frame it first produced was `ROWS BETWEEN 51 PRECEDING AND CURRENT ROW` — statistically wrong, because it scores each week against a baseline containing that week. The shipped implementation uses `52 PRECEDING AND 1 PRECEDING`; correcting it took detected negative anomalies from 2 to 10. Boilerplate is where AI helps; the frame boundary is where it does not.
 
 #### 2. Human Strategic Leadership (Senior Reviewer Interventions):
 While AI handled syntax and boilerplate in seconds, I maintained strict architectural control to overcome 4 critical LLM logic anti-patterns during Stages 1 & 2:
