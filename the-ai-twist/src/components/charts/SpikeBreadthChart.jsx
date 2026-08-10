@@ -68,7 +68,11 @@ const SpikeBreadthChart = () => {
         <span className="text-slate-600">Not flagged by source — the flag misses the biggest weeks</span>
       </p>
 
-      <div className="flex-1 min-h-[320px]">
+      {/* Definite height, not flex-1 + min-h. This card is full-width with no sibling
+          to size its grid row, so a percentage-height ResponsiveContainer resolves
+          against an auto-height parent and collapses to 0 -- the chart renders its
+          title and nothing else. */}
+      <div className="w-full h-[380px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 20, right: 30, bottom: 30, left: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
