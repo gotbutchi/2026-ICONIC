@@ -220,3 +220,165 @@ To deliver rapid time-to-value without embarking on an open-ended technology pro
 * **Accelerated Decision Velocity:** Reduces time-to-insight from **3 weeks to 3–5 minutes**, expanding pre-launch testing capacity by 10x.
 * **Inventory Risk Reduction:** Assists Merchandising teams in forecasting category-level demand prior to committing capital to manufacturing volume orders.
 * **Data Security:** Achieves **Zero-PII exposure by design** within the business campaign testing sandbox.
+
+---
+
+## APPENDIX A: UX/UI WIREFRAMES & APPLICATION WORKFLOW
+
+To contextualize the end-product for engineering and product teams, below is the text-based wireframe and layout for the DataBot Web Application (e.g., React/Next.js dashboard).
+
+### A.1 Global Layout
+```text
++---------------------------------------------------------------+
+|  [Logo]  Campaign Simulation Agent                    [User]  |
++---------------------------------------------------------------+
+| Sidebar           |  Content Area                             |
+| ------------------|------------------------------------------ |
+| - Dashboard       |                                           |
+| - Campaign Builder|                                           |
+| - Results         |                                           |
+| - What-If Lab     |                                           |
+| - Segments        |                                           |
+| - History         |                                           |
+| - Settings        |                                           |
++-------------------+-------------------------------------------+
+```
+
+### A.2 Dashboard (Home)
+**Purpose:** Quick overview of the system, recent campaigns, and actionable shortcuts.
+```text
++---------------------------------------------------------------+
+|  Dashboard                                                    |
++---------------------------------------------------------------+
+|  Quick Stats                                                  |
+|  - Total simulations run (MTD): 124                           |
+|  - Avg time-to-insight: 3.2 minutes                           |
+|  - Top segment by usage: Gen Z Sneaker Lovers                 |
++---------------------------------------------------------------+
+|  Recent Simulations                                           |
+|  -----------------------------------------------------------  |
+|  | Campaign Name          | Segment         | Date       |   |
+|  | Flash Sale 15% Sneaker | Gen Z Sneaker   | 2026-08-09 |   |
+|  | New Collection Dress   | Millennials     | 2026-08-08 |   |
+|  -----------------------------------------------------------  |
+|  [View All History]                                           |
++---------------------------------------------------------------+
+|  Quick Actions                                                |
+|  [New Simulation]  [What-If Lab]  [Ask DataBot]               |
++---------------------------------------------------------------+
+```
+*Interaction:* "New Simulation" routes to Campaign Builder. Clicking a recent campaign opens its Result Dashboard. "Ask DataBot" opens the global chat panel.
+
+### A.3 Campaign Builder (No-Code Config)
+**Purpose:** Interface for business users to configure campaign parameters for simulation.
+```text
++---------------------------------------------------------------+
+|  Step 1: Select Segment                                       |
+|  [Dropdown] Gen Z Sneaker Lovers – HCMC                       |
+|  -> Preview: Cohort size: 5,000 | Avg AOV: 1.1M | 68% Discount-sensitive |
++---------------------------------------------------------------+
+|  Step 2: Campaign Details                                     |
+|  - Type: [Dropdown] Flash Sale / Clearance / Loyalty          |
+|  - Channel: [Checkbox] In-App Push, Email, Meta Ads           |
+|  - Discount: [Slider] 5% - 40%                                |
+|  - Freeship Threshold: [Input] VND                            |
++---------------------------------------------------------------+
+|  Step 3: Creative Preview                                     |
+|  - Headline / Subtext: [Input]                                |
+|  - Image: [Upload / Template]                                 |
++---------------------------------------------------------------+
+|  [Save as Draft]  [Run Simulation]                            |
++---------------------------------------------------------------+
+```
+
+### A.4 Simulation Run & Results Dashboard
+**Progress Screen (Execution Phase):**
+```text
++---------------------------------------------------------------+
+|  Running Simulation: Flash Sale 15% Sneaker                   |
++---------------------------------------------------------------+
+|  Spawning 5,000 Digital Twins...                              |
+|  Running interactions... 32% complete (~1 min remaining)      |
+|                                                               |
+|  Agent Activity Log (Thought Process):                        |
+|  - Calculating CTR for segment Gen Z...                       |
+|  - Estimating cannibalization risk...                         |
++---------------------------------------------------------------+
+```
+
+**Results Screen (Post-Execution):**
+```text
++---------------------------------------------------------------+
+|  Results: Flash Sale 15% Sneaker – Gen Z Sneaker Lovers       |
++---------------------------------------------------------------+
+|  Key Metrics: CTR: 8.2% | CVR: 3.5% | AOV: 1.2M VND           |
+|  Incremental Revenue: 210M VND | Cannibalization Risk: 12%    |
++---------------------------------------------------------------+
+|  Funnel Chart: Impression → Click → View → Cart → Purchase    |
++---------------------------------------------------------------+
+|  [Ask DataBot]  [Run What-If]  [Export PDF/CSV]               |
++---------------------------------------------------------------+
+```
+
+### A.5 DataBot Chat Panel (AI Analyst Agent)
+**Purpose:** Conversational interface for querying results, generating insights, and recommending actions.
+```text
++---------------------------------------------------------------+
+|  DataBot – Analyst Agent                                      |
++---------------------------------------------------------------+
+|  User: Is this campaign worth it compared to the baseline?    |
+|                                                               |
+|  DataBot: Compared to the no-promo baseline, this projects:   |
+|  - CTR: 8.2% (vs 4.5%)                                        |
+|  - CVR: 3.5% (vs 1.8%)                                        |
+|  - Incremental Revenue: 210M VND                              |
+|  Recommendation: PROCEED, but limit stock on flagship SKUs.   |
++---------------------------------------------------------------+
+|  [Input: Ask a follow-up question...]  [Send]                 |
+|  Quick Actions: "What if discount = 20%?", "Why is CVR low?"  |
++---------------------------------------------------------------+
+```
+
+### A.6 What-If Lab
+**Purpose:** Rapid testing of campaign variants without building from scratch.
+```text
++---------------------------------------------------------------+
+|  What-If Lab (Base: Flash Sale 15% Sneaker)                   |
++---------------------------------------------------------------+
+|  Parameters to Change:                                        |
+|  - Discount %: [15%] -> [20%]                                 |
+|  - Freeship Threshold: [1M VND] -> [0 VND]                    |
+|  [Run What-If Simulation]                                     |
++---------------------------------------------------------------+
+|  Results Comparison:                                          |
+|  | Metric   | Original | What-If | Change |                   |
+|  | CVR      | 3.5%     | 4.8%    | +1.3pp |                   |
+|  | Margin   | -        | -15%    |        |                   |
+|  [Ask DataBot about What-If]  [Save as New Campaign]          |
++---------------------------------------------------------------+
+```
+
+### A.7 Segments Explorer & History/Audit Log
+* **Segments Explorer:** Browse available synthetic cohorts (size, AOV, distribution charts for RFM and price sensitivity). Launch new simulations directly from a segment profile.
+* **History & Audit Log:** Searchable log of all simulation runs (Campaign Spec, Twin version, User, Random seed) to ensure absolute reproducibility and governance.
+
+---
+
+## APPENDIX B: AGILE USER STORIES (PRODUCT BACKLOG)
+
+To accelerate engineering hand-off, the core functionality is broken down into Agile User Stories.
+
+**Epic 1: Campaign Builder & Simulation Execution**
+* **US-1 (Create Campaign):** As a Marketing Manager, I want to create a new simulation by selecting a segment and configuring parameters, so that I can test ideas without spending real budget.
+* **US-2 (Segment Preview):** As a Marketer, I want to see key statistics of the selected segment (cohort size, avg AOV) before running, so that I ensure I’m targeting the correct audience.
+* **US-3 (Execution Progress):** As a Marketer, I want to see the progress of my simulation run (spawning twins, ETA) and the agent's thought process, so that I know the system is actively computing.
+
+**Epic 2: Results & The AI Analyst (DataBot)**
+* **US-4 (Result Scorecards):** As a Marketing Manager, I want to see key metrics (CTR, CVR, Incremental Revenue) and a funnel chart, so that I can instantly assess campaign viability.
+* **US-5 (Conversational Queries):** As a Marketer, I want to ask DataBot questions about the results in natural language, so that I can extract insights without writing SQL.
+* **US-6 (Actionable Recommendations):** As a Marketing Manager, I want DataBot to provide strategic recommendations (e.g., adjust channel mix), so that I can make better decisions faster.
+
+**Epic 3: What-If Lab & Governance**
+* **US-7 (Variant Testing):** As a Marketer, I want to tweak 1-2 parameters of a completed campaign and re-run it, so that I can find the mathematical optimum before launch.
+* **US-8 (Audit Logging):** As a Data Lead, I want to see the full manifest of a simulation run (model version, random seed, chat transcript), so that I can audit and reproduce the result.
+* **US-9 (RBAC & Policy Limits):** As a Finance Lead, I want to set minimum gross margin thresholds globally, so that DataBot can restrict recommendations that violate profitability guidelines.
