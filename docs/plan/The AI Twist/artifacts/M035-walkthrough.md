@@ -1,0 +1,13 @@
+# M035: Improvement Plan Walkthrough
+
+**Phase Objective:** Eliminate data bias from the extraction pipeline and construct the "Overall Performance" (Tier 1) perspective to anchor the Executive Dashboard.
+
+## Technical Highlights
+1. **Human-in-the-Loop Data QA:** Caught and resolved a severe data quality oversight where the `is_invalid_sales = FALSE` flag was missing from the generated SQL, which would have incorrectly included negative transactions in the financial aggregates.
+2. **Split-Filtering Architecture:** Intentionally diverged date filtering logic between components. Applied a hard date filter to the Scorecards to establish a precise mathematical anchor (`184.3M ₫`), while allowing the Line and Bar charts to pull unbounded data for accurate seasonality visualization.
+3. **UI/UX Refinement:** Wrapped the Scorecards and Charts into a unified `<OverallPerformance>` container to communicate that the KPIs serve as the aggregate sum of the visual data below it, drastically improving cognitive flow. Added a high-value C-Level `<ExecutiveSummary>` at the absolute top of the page.
+4. **Layout & Alignment Fixes:** Updated `InsightCard.jsx` to use `justify-start` and `flex-col`, ensuring that the Insight text perfectly aligns horizontally with the top of its corresponding chart/table.
+5. **Chart Readability Enhancements:** Moved all `ReferenceLine` labels to the extreme edges (e.g., `insideBottomRight`, `insideTopRight`) to prevent them from overlapping data points. Added explicit X and Y axis labels to all Recharts (`AnomalyScatter.jsx`, `FuelElasticityMatrix.jsx`, `UnemploymentScatter.jsx`). Correctly formatted the `tickFormatter` on the X-Axis of the Unemployment chart.
+6. **Volatility Tables Restructure:** Replaced the single `ComebackKingTable` with two distinct blocks (`ComebackBlock.jsx` and `FailBlock.jsx`). Implemented a Top N (1 or 10) local state filter for each block. Formatted the Growth/Drop column to a clean Millions suffix (e.g., `+4.37M ₫`).
+7. **Storytelling Update:** Split the Insight content in `App.jsx` to explicitly highlight Store 14's dual nature as both the ultimate Comeback King and the worst Fail King.
+8. **Global Interactivity (Highlight Context Filter):** Added a global `<select>` dropdown in the Header for "Highlight Store". Passed the `selectedStoreId` state down to all Scatter charts and Volatility tables. Implemented conditional rendering logic in Recharts `<Cell>` and Tailwind classes to prominently highlight the selected store (solid Purple/Blue) while fading out the rest (opacity 0.2). This maintains the macro-context of the scatter plot while allowing deep-dives into specific stores.
