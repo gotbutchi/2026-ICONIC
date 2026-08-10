@@ -56,16 +56,19 @@ const UnemploymentScatter = ({ selectedStoreId }) => {
         measure matters: Store 35 reads 126% against its whole-period average but 99.4% against a trailing
         52-week average — the first looks ahead and does not detrend.
       </p>
-      <p className="text-xs text-slate-500 mb-4 px-2 italic">(🟢 High Resilience | 🔴 Low Resilience | X-axis: Unemployment % | Y-axis: Resilience Index)</p>
+      {/* Grey is the majority population here, so leaving it out of the legend left most of
+          the chart unexplained. */}
+      <p className="text-xs text-slate-500 mb-4 px-2 italic">(🟢 At or above baseline (≥100%) | ⚪ Below baseline (80–100%) | 🔴 Weak (&lt;80%) | X-axis: Unemployment % | Y-axis: Resilience Index)</p>
       <div className="flex-1 min-h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis 
               type="number" 
-              dataKey="x" 
-              name="Unemployment %" 
-              tickFormatter={(val) => `${val}%`}
+              dataKey="x"
+              name="Unemployment %"
+              domain={['dataMin - 0.5', 'dataMax + 0.5']}
+              tickFormatter={(val) => `${Number(val).toFixed(1)}%`}
               stroke="#64748b"
               label={{ value: 'Unemployment %', position: 'insideBottom', offset: -10, fill: '#64748b', fontSize: 12 }}
             />
@@ -84,7 +87,9 @@ const UnemploymentScatter = ({ selectedStoreId }) => {
             />
             <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
             
-            <ReferenceLine y={100} stroke="#10b981" strokeDasharray="3 3" label={{ position: 'insideBottomRight', value: '100% Baseline', fill: '#10b981', fontSize: 12 }} />
+            {/* Anchored left: at insideBottomRight the label was clipped by the plot edge
+                and rendered as "0% Baseline", which reads as a different number entirely. */}
+            <ReferenceLine y={100} stroke="#10b981" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: '100% Baseline (parity)', fill: '#10b981', fontSize: 12 }} />
             
             <Scatter name="Resilience" data={data}>
               {data.map((entry, index) => {

@@ -44,11 +44,14 @@ const FuelElasticityMatrix = ({ selectedStoreId }) => {
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis 
-              type="number" 
-              dataKey="x" 
-              name="Fuel Growth %" 
-              tickFormatter={(val) => `${val}%`}
+            {/* The extract is already filtered to fuel growth > 5%, so a 0-anchored axis
+                guarantees ~30% of the plot is empty by construction. */}
+            <XAxis
+              type="number"
+              dataKey="x"
+              name="Fuel Growth %"
+              domain={['dataMin - 0.5', 'dataMax + 0.5']}
+              tickFormatter={(val) => `${Number(val).toFixed(1)}%`}
               stroke="#64748b"
               label={{ value: 'Fuel Growth %', position: 'insideBottom', offset: -10, fill: '#64748b', fontSize: 12 }}
             />
