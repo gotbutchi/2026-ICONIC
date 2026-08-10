@@ -5,32 +5,71 @@ sources:
     description: "Raw source data loaded via CSV"
     tables:
       - name: bi_data
-        description: "Raw weekly sales dataset"
+        description: "Raw weekly sales dataset (45 stores x 143 weekly snapshots, 2019-02-01 to 2021-10-22)"
 
 models:
   - name: stg_weekly_sales
-    description: "Cleaned and standardized weekly sales data."
+    description: >
+      Cleaned and standardized weekly sales data. Grain: 1 row = 1 store x 1 week.
+      Every source column is SAFE_CAST so a single malformed value cannot abort the
+      pipeline; bad rows are flagged, never dropped.
+    tests:
+      # the source is a complete panel: 45 stores x 143 weeks, one row each
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - store_id
+              - partition_date
+      # DQ-1 guard: every week in this feed ends on a Friday. This is the test that
+      # would have caught the original date fix, which silently produced a Saturday.
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "EXTRACT(DAYOFWEEK FROM partition_date) = 6"
     columns:
       - name: store_id
-        description: "Primary key for store"
+        description: "Natural key for store"
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('store_region')
+                field: store_id
 
       - name: partition_date
-        description: "The end date of the week"
+        description: "The end date of the week (always a Friday)"
         tests:
           - not_null
+
+      - name: is_date_recovered
+        description: "TRUE where partition_date was reconstructed rather than parsed (DQ-1)"
+        tests:
+          - not_null
+
+      - name: raw_weekly_sales_amount
+        description: "Sales exactly as supplied, NULL-preserving. Use for data-quality auditing."
 
       - name: weekly_sales_amount_vnd
-        description: "Total weekly sales amount"
+        description: "Reporting sales measure; NULLs defaulted to 0 and flagged via sales_quality_code"
         tests:
           - not_null
 
+      - name: sales_quality_code
+        description: "Why a row is or is not usable: VALID, MISSING, NEGATIVE or ZERO"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["VALID", "MISSING", "NEGATIVE", "ZERO"]
+
       - name: is_invalid_sales
-        description: "Flag indicating negative or zero sales"
+        description: "Convenience flag; TRUE whenever sales_quality_code <> 'VALID'"
+        tests:
+          - not_null
 
       - name: is_holiday_week
-        description: "Boolean flag if the week includes a major holiday"
+        description: >
+          Boolean flag as published by the source. Note DQ-4: this flag misses the
+          pre-Christmas peak trading week -- see dim_date.is_trading_peak_week.
         tests:
           - not_null
 
@@ -42,3 +81,25 @@ models:
 
       - name: unemployment_rate
         description: "Unemployment rate in the region"
+
+seeds:
+  - name: store_region
+    description: >
+      Store-to-region lookup. Region is a synthetic placeholder: the source feed has
+      no geography attribute, and this seed exists so the region-grain joins proposed
+      in Stage 1.3 (dim_marketing_spend, dim_competitor_pricing) are actually
+      implementable rather than theoretical.
+    columns:
+      - name: store_id
+        tests:
+          - unique
+          - not_null
+      - name: region_id
+        tests:
+          - not_null
+      - name: region_name
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["NSW", "VIC", "QLD", "WA"]

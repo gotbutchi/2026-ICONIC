@@ -35,7 +35,12 @@ SELECT
     -- metrics
     stg.weekly_sales_amount_vnd,
     stg.is_invalid_sales,
-    
+
+    -- data-quality lineage carried through to the BI layer, so an excluded row
+    -- can always be explained rather than just disappearing
+    stg.sales_quality_code,
+    stg.is_date_recovered,
+
     CURRENT_TIMESTAMP() AS loaded_at
     
 FROM staging stg
