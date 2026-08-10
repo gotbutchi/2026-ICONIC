@@ -1,0 +1,19 @@
+name: the_iconic_bi
+
+profile: the_iconic_bi
+
+seed-paths: ["seeds"]
+model-paths: ["models"]
+macro-paths: ["macros"]
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+
+models:
+  the_iconic_bi:
+    +static_analysis: strict
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

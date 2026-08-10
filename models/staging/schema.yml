@@ -1,0 +1,44 @@
+version: 2
+
+sources:
+  - name: raw_data
+    description: "Raw source data loaded via CSV"
+    tables:
+      - name: bi_data
+        description: "Raw weekly sales dataset"
+
+models:
+  - name: stg_weekly_sales
+    description: "Cleaned and standardized weekly sales data."
+    columns:
+      - name: store_id
+        description: "Primary key for store"
+        tests:
+          - not_null
+
+      - name: partition_date
+        description: "The end date of the week"
+        tests:
+          - not_null
+
+      - name: weekly_sales_amount_vnd
+        description: "Total weekly sales amount"
+        tests:
+          - not_null
+
+      - name: is_invalid_sales
+        description: "Flag indicating negative or zero sales"
+
+      - name: is_holiday_week
+        description: "Boolean flag if the week includes a major holiday"
+        tests:
+          - not_null
+
+      - name: fuel_price_amount_vnd
+        description: "Cost of fuel in the region"
+
+      - name: cpi
+        description: "Consumer Price Index"
+
+      - name: unemployment_rate
+        description: "Unemployment rate in the region"

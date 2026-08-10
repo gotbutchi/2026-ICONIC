@@ -1,0 +1,102 @@
+version: 2
+
+models:
+  - name: fct_weekly_sales
+    description: "Weekly sales transactions per store. Grain: 1 row = 1 store x 1 week."
+    columns:
+      - name: sales_sk
+        description: "Primary key (hash of store_id + partition_date)"
+        tests:
+          - unique
+          - not_null
+      - name: store_sk
+        description: "FK to dim_store (surrogate key, point-in-time)"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_store')
+                field: store_sk
+      - name: store_id
+        description: "Natural key for store (kept for readability)"
+        tests:
+          - not_null
+      - name: partition_date
+        description: "FK to dim_date"
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_id
+      - name: is_holiday_week
+        description: "Whether the week contains a holiday"
+        tests:
+          - not_null
+
+  - name: dim_store
+    description: "Store dimension with SCD Type 2 for economic indicators"
+    columns:
+      - name: store_sk
+        description: "Primary key (surrogate)"
+        tests:
+          - unique
+          - not_null
+      - name: store_id
+        description: "Natural key (not unique — SCD2 has multiple rows per store)"
+        tests:
+          - not_null
+
+  - name: dim_date
+    description: "Date spine from 2000 to 2030"
+    columns:
+      - name: date_id
+        description: "Date primary key"
+        tests:
+          - unique
+          - not_null
+      - name: is_holiday
+        description: "Flag if the date falls on a holiday week"
+        tests:
+          - not_null
+
+  - name: agg_monthly_sales
+    description: "Monthly sales rollup with HLL sketch. Grain: 1 row = 1 year x 1 month."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - year_num
+              - month_num
+    columns:
+      - name: year_num
+        description: "Year component of the month"
+        tests:
+          - not_null
+      - name: month_num
+        description: "Month component"
+        tests:
+          - not_null
+      - name: total_monthly_sales
+        description: "Sum of weekly sales for the month"
+        tests:
+          - not_null
+      - name: hll_store_id
+        description: "HLL sketch for approximate distinct store count"
+        tests:
+          - not_null
+
+  - name: mart_mom_sales_growth
+    description: "Exploratory: Top 10 store-months with the largest sales turnaround (MoM)"
+
+
+  - name: mart_unemployment_sales_impact
+    description: "Event-log calculating a Resilience Index (% vs Baseline) to identify stores that maintain or grow market share during high unemployment periods (Mean + 1 StdDev)."
+
+  - name: mart_comeback_king
+    description: "Event-tracking fact table containing all negative growth events and their subsequent 4-week sales performance, enabling interactive Comeback vs Fail King analysis."
+
+  - name: mart_anomaly_detection
+    description: "Evaluates weekly sales against a 52-week rolling average and standard deviation, classifying events as 'Normal', 'Positive Anomaly (Spike)', or 'Negative Anomaly (Drop)'."
+
+  - name: mart_counter_cyclical
+    description: "Event-log tracking economic resilience (Counter-Cyclical vs Pro-Cyclical) by comparing weekly sales elasticity against fuel price inflation (>5%)."
