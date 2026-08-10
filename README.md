@@ -110,17 +110,46 @@ To deliver maximum commercial value, the presentation layer was split in two. Fi
 
 To scale analytical impact across THE ICONIC beyond passive reporting, I propose deploying **The Analyst Agent ("DataBot")** as a **Campaign Simulation Platform** powered by **Digital Customer Twins**. Inspired by state-of-the-art research in population-scale agentic simulation (notably the *MatrAIx Framework*, 2026), this platform operates entirely within a **Zero-PII sandbox**:
 
-```text
-[ Feature Mart (BigQuery) ] ──(No PII Vectorization)──► [ Vector Store (Pinecone/Weaviate) ]
-                                                                 │
-                                                                 ▼
-[ Business No-Code UI ] ──(Campaign Spec)──► [ Simulation Engine ] ◄── [ Digital Twin Generator ]
-                                                    │
-                                                    ▼
-                                       [ Simulation Result Store ]
-                                                    │
-                                                    ▼
-                                     [ The Analyst Agent (Slack Bot) ] ◄──► [ Business User ]
+```mermaid
+graph TD
+    classDef stage fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef highlight fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px;
+    classDef warning fill:#fff3e0,stroke:#ff9800,stroke-width:2px;
+    classDef success fill:#e8f5e9,stroke:#4caf50,stroke-width:2px;
+
+    subgraph A [A. Build the Digital Twin Population]
+        A1[BigQuery Feature Mart<br>Historical Transactions]
+        A2[Zero-PII Anonymization<br>Differential Privacy]
+        A3[(Vector Store<br>Dense Cohort Embeddings)]:::highlight
+        A4[Synthetic Persona Pool<br>Gen Z, Discount-Sensitive]:::highlight
+        
+        A1 --> A2 --> A3 --> A4
+    end
+
+    subgraph B [B. Campaign Simulation Infrastructure]
+        B1[Sample 5,000 Twins<br>from Target Cohort]
+        B2{The Analyst Agent<br>Simulation Engine}:::warning
+        B3[Simulated E-Commerce Funnel<br>Impression ➔ Cart ➔ Purchase]
+        B4[Telemetry & KPIs<br>CTR, Incremental Revenue]:::success
+        
+        B1 --> B2
+        B2 --> B3
+        B3 --> B4
+    end
+
+    subgraph C [C. Business Interfaces & Applications]
+        C1[No-Code Campaign Builder<br>Define Flash Sales]
+        C2[What-If Lab<br>Compare Variants A vs B]
+        C3[Conversational Chatbot<br>Query Insights via DataBot]
+    end
+
+    A4 -->|Supplies Digital Twins| B1
+    C1 -->|Campaign Spec| B2
+    C2 -.->|Parameter Tweaks| B2
+    B4 -->|Results & Findings| C3
+    B4 -->|Display Scorecards| C1
+
+    class A,B,C stage;
 ```
 
 * **Zero-PII Sandbox:** Converts historical features into dense vector embeddings stored in a Vector DB (Pinecone/Weaviate). Strips all PII by design, enabling business teams to simulate campaigns without touching live production databases.
