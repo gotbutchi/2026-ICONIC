@@ -32,6 +32,36 @@ The raw flat CSV was decomposed into a dimensional model:
   * `dim_date`: Calendar spine spanning 2000–2030 with holiday flags.
 * **Analytical Marts:** Materialized as `VIEW`s to ensure real-time freshness on-demand.
 
+**Standard DDL Architecture (BigQuery Syntax):**
+```sql
+-- DDL for Dimension: dim_store (SCD Type 2)
+CREATE TABLE `the_iconic.dim_store` (
+    store_sk STRING NOT NULL,       -- Surrogate Key (FARM_FINGERPRINT)
+    store_id INT64 NOT NULL,        -- Natural Key
+    region_id INT64,
+    size INT64,
+    store_type STRING,
+    unemployment_rate FLOAT64,
+    cpi FLOAT64,
+    valid_from DATE NOT NULL,
+    valid_to DATE,
+    is_current BOOLEAN NOT NULL
+)
+CLUSTER BY store_id;
+
+-- DDL for Fact: fct_weekly_sales
+CREATE TABLE `the_iconic.fct_weekly_sales` (
+    store_sk STRING NOT NULL,       -- Foreign Key to dim_store
+    store_id INT64 NOT NULL,        -- Degenerate Dimension
+    partition_date DATE NOT NULL,   -- Date spine mapping
+    weekly_sales FLOAT64,
+    fuel_price FLOAT64,
+    is_holiday BOOLEAN
+)
+PARTITION BY partition_date
+CLUSTER BY store_id;
+```
+
 *Why is this better for Looker Studio / Tableau?*
 1. **Cost Efficiency:** Partitioning by `partition_date` and clustering by `store_id` reduces BigQuery query scan volume and cost.
 2. **Point-in-Time Accuracy:** Joining fact records to `dim_store` via `store_sk` avoids row multiplication (fan-out) when joining against historical SCD2 attributes.
