@@ -15,29 +15,21 @@ This is a standalone, interactive React web application built as part of **THE I
 
 ## ✨ Key Features & Gallery
 
-<p align="center">
-  <img src="../images/Onboarding-feature.png" alt="Onboarding Feature" width="100%"/>
-</p>
+![Onboarding Feature](../images/Onboarding-feature.png)
 
 1. **Schema-Driven Data Binding:** The dashboard visualizes pre-aggregated data (Top 10 Comeback Kings, Anomaly Events) exported directly from BigQuery/dbt models without requiring a live database connection (Zero-PII exposure).
 2. **Interactive Scatter Plots:** Explores macro-economic elasticity, mapping `Unemployment Rate` and `Fuel Price Spikes` against standardized `Resilience Indices` and `Z-Scores`.
 3. **Cross-Filtering & Highlighting:** Global state interactions allow users to highlight specific entities (e.g., highlighting Store 14 across multiple charts) to uncover hidden insights like extreme seasonality.
    <br/>
-   <p align="center">
-     <img src="../images/Highlight-store-feature.png" alt="Highlight Store" width="48%"/>
-     &nbsp;
-     <img src="../images/Filter-store-feature.png" alt="Filter Store" width="48%"/>
-   </p>
+   ![Highlight Store](../images/Highlight-store-feature.png)
+   <br/>
+   ![Filter Store](../images/Filter-store-feature.png)
 4. **Product Tour Guide:** Built-in `react-joyride` onboarding flow to guide Executive stakeholders through complex statistical charts (e.g., explaining how to read a 52-week rolling Z-score).
    <br/>
-   <p align="center">
-     <img src="../images/User-Guide-feature.png" alt="User Guide" width="80%"/>
-   </p>
+   ![User Guide](../images/User-Guide-feature.png)
 5. **The Analyst Agent (DataBot) UI:** A simulated chat interface to interact with the Campaign Simulation platform.
    <br/>
-   <p align="center">
-     <img src="../images/Chatbot-feature.png" alt="Chatbot UI" width="80%"/>
-   </p>
+   ![Chatbot UI](../images/Chatbot-feature.png)
 6. **Responsive Editorial UI:** Designed with a high-contrast minimalist aesthetic (Stark White, Emerald Green, Coral Red) optimized for both desktop and mobile viewports.
 
 ## 🛠️ Local Setup & Execution
