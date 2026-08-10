@@ -52,12 +52,13 @@ const AnomalyScatter = ({ selectedStoreId }) => {
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis 
-              type="number" 
-              dataKey="x" 
-              name="52w Avg Baseline" 
-              {/* one decimal: baselines span 0.3M-3.8M, so whole millions collapse
-                  distinct ticks into a repeated "1M · 1M · 2M · 2M" axis */}
+            {/* One decimal on the X ticks: baselines span roughly 0.3M-3.8M VND, so
+                whole millions collapse distinct ticks into a repeated
+                "0M · 1M · 1M · 2M · 2M" axis. */}
+            <XAxis
+              type="number"
+              dataKey="x"
+              name="52w Avg Baseline"
               tickFormatter={(val) => `${(val/1000000).toFixed(1)}M`}
               stroke="#64748b"
               label={{ value: '52-Week Baseline Sales (VND)', position: 'insideBottom', offset: -10, fill: '#64748b', fontSize: 12 }}
