@@ -37,7 +37,6 @@ QUERIES = {
     "unemployment_mock_data.csv": f"""
         SELECT
           store_id, partition_date, unemployment_rate,
-          weekly_resilience_index,
           resilience_index_alltime, resilience_index_trailing,
           is_high_unemployment_period
         FROM `{PROJECT_ID}.{DATASET}.mart_unemployment_sales_impact`
