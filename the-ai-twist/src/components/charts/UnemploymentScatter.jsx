@@ -69,11 +69,16 @@ const UnemploymentScatter = ({ selectedStoreId }) => {
               stroke="#64748b"
               label={{ value: 'Unemployment %', position: 'insideBottom', offset: -10, fill: '#64748b', fontSize: 12 }}
             />
-            <YAxis 
-              type="number" 
-              dataKey="y" 
-              name="Resilience Index %" 
-              tickFormatter={(val) => `${val}%`}
+            {/* Recharts defaults a numeric axis to [0, auto], which pinned this axis at
+                0-220% while every point sits between ~55% and ~215% and most cluster
+                90-130%. That squashed the distribution onto the 100% line and hid the
+                separation the chart exists to show. */}
+            <YAxis
+              type="number"
+              dataKey="y"
+              name="Resilience Index %"
+              domain={['dataMin - 10', 'dataMax + 10']}
+              tickFormatter={(val) => `${Math.round(val)}%`}
               stroke="#64748b"
               label={{ value: 'Resilience Index %', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 12 }}
             />

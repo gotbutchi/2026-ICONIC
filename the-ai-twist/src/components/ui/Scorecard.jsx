@@ -75,7 +75,9 @@ export default function Scorecard() {
             {lfl ? (lfl.pct > 0 ? '+' : '') + lfl.pct.toFixed(1) + '%' : '—'}
           </p>
           <p className="text-xs text-slate-400 mt-1">
-            {lfl ? `${lfl.from} vs ${lfl.to}, per store-week, same Feb–Oct window` : ''}
+            {/* Later year first: the figure is "2021 vs 2019", and printing the base year
+                first read as though 2019 were the number on the card. */}
+            {lfl ? `${lfl.to} vs ${lfl.from}, per store-week, same Feb–Oct window` : ''}
           </p>
         </div>
 
