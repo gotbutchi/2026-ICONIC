@@ -4,6 +4,59 @@
 
 > **Note on Live Demo:** The Vercel link hosts the final "AI Twist" Executive Analytics Dashboard built in React. The Looker Studio link hosts the initial BI version.
 
+---
+
+## TL;DR: Project Completion Master Checklist
+
+This repository represents a **100% COMPLETE** submission for **THE ICONIC: BI & Data Insights Challenge**, executing all 4 Stages to the standard of a Senior Analytics Engineer / Full-stack Data Analyst. 
+
+Below is the detailed alignment between THE ICONIC's requirements and the delivered solutions:
+
+### Stage 1: Engineering & Refactoring
+
+| Requirement | Delivered Solution | Status |
+| --- | --- | --- |
+| **1. Data Quality Audit** | Identified and resolved 3 critical source issues in `stg_weekly_sales.sql`:<br><br>1. Corrected invalid dates (e.g., `14/13/2019` -> `12/2019`).<br><br>2. Flagged zero/negative sales outliers (`is_invalid_sales`).<br><br>3. Enforced safe type casting & Null handling (`COALESCE`). | **DONE** |
+| **2. Schema Refactoring & DDL** | Designed a standard Kimball **Star Schema** (`fct_weekly_sales`, `dim_store`, `dim_date`).<br><br>• `dim_store` implements **SCD Type 2** (`valid_from`, `valid_to`, `is_current`, `store_sk`).<br><br>• Provided **BigQuery DDL** featuring `PARTITION BY partition_date` and `CLUSTER BY store_id`.<br><br>• Explained the benefits of preventing fan-out and optimizing scan costs for BI tools. | **DONE** |
+| **3. Proposed Data Ecosystem** | Proposed 3 theoretical external tables with explicit Join Keys:<br><br>1. `dim_marketing_spend` (Key: `partition_date` + `region_id`).<br><br>2. `dim_weather_indices` (Key: `store_id` + `partition_date`).<br><br>3. `dim_competitor_pricing` (Key: `partition_date` + `region_id`). | **DONE** |
+
+### Stage 2: Advanced SQL Intelligence
+
+| Requirement | Delivered Solution | Status |
+| --- | --- | --- |
+| **1. The "Comeback King"** | Authored `mart_comeback_king.sql` using `LAG()` to detect negative growth weeks, combined with a `SUM(...) OVER (PARTITION BY store_id ORDER BY partition_date ROWS BETWEEN 1 FOLLOWING AND 4 FOLLOWING)` window to measure the subsequent 4-week recovery. | **DONE** |
+| **2. Statistical Anomaly Detection** | Authored `mart_anomaly_detection.sql` to calculate a **52-week Rolling Z-Score** (`AVG` and `STDDEV_SAMP` over a 51-week preceding window). Classified anomalies bi-directionally: Spikes (Z > 3) and Drops (Z < -3). | **DONE** |
+| **3. Counter-Cyclical Trends** | Authored `mart_counter_cyclical.sql` as an **Event-Log**, comparing `sales_growth_pct` vs `fuel_growth_pct` (>5%) to categorize stores as Resilient vs Vulnerable. | **DONE** |
+
+### Stage 3: Dashboard Asset & Insight Delivery
+
+| Requirement | Delivered Solution | Status |
+| --- | --- | --- |
+| **1. The Build** | Constructed the official **Looker Studio Executive Dashboard** featuring a top-down, 2-section layout with MTD/YTD Scorecards. | **DONE** |
+| **2. The AI Twist** | Built a standalone Web App using **React.js + Tailwind CSS + Recharts**, integrating global interactive filters (**Highlight Store 14** functionality) and a **Product Tour Guide** (`react-joyride`). Deployed live to Vercel: **[https://the-ai-twist.vercel.app/](https://the-ai-twist.vercel.app/)**. | **DONE** |
+| **3. The Methodology** | Detailed 3 methodological pillars (*Modular & Disconnected Prompting*, *Human-in-the-Loop AI Debugging*, *Monorepo Deployment*) in `README.md`, and authored an in-depth report on debugging 5 AI hurdles (Selection Bias, Recharts shape, Vite CSV bug, % formatting) in `docs/report/the-ai-twist.md`. | **DONE** |
+| **4. Commercial Insights** | Extracted 5 high-value, data-backed commercial insights:<br><br>• The dominance of Black Friday (80% of mega events).<br><br>• The macroeconomic collapse threshold at 10% Fuel Growth.<br><br>• The "Lipstick Effect" demonstrated by Store 35.<br><br>• The Store 14 plot twist (functioning as both Comeback King and Fail King due to extreme seasonality). | **DONE** |
+
+### Stage 4: Agentic Analytics & AI Strategy
+
+| Requirement | Delivered Solution | Status |
+| --- | --- | --- |
+| **1. The Analyst Agent** | Outlined the architecture of a **Slack AI Agent ("DataBot")** equipped with 3 core tools (`dbt_semantic_layer_tool`, `python_interpreter`, `root_cause_analyzer`) to autonomously answer business questions for Regional Managers. | **DONE** |
+| **2. Team Integration** | Detailed a **Human-Designed, AI-Generated** workflow utilizing AI as a Pair-Programmer to automate tedious BI tasks (dbt scaffolding, `schema.yml` generation, data quality test audits), while acting as a Senior Code Reviewer to solve 4 technical hurdles. | **DONE** |
+
+## Final Submission Assets
+
+The complete project payload is now consolidated on the `main` branch of this GitHub Repository:
+
+1. **Production Web App (Vercel Live URL):** [https://the-ai-twist.vercel.app/](https://the-ai-twist.vercel.app/)
+2. **Standard BI Dashboard:** [Looker Studio Link](https://datastudio.google.com/reporting/b850b2ee-afb6-48fe-b1db-7ad584955e15)
+3. **Master Report:** The root `README.md` file.
+4. **Deep-Dive Technical Report:** `docs/report/the-ai-twist.md`.
+
+---
+
+## The Assignment (Original Context)
+
 ## Executive Summary
 
 This project delivers an end-to-end analytics foundation for THE ICONIC Weekly Sales dataset. Built on **dbt-fusion (v2)** and **BigQuery**, the architecture transforms flat transaction records into a standard **Star Schema**, enforces strict data quality tests, and feeds an interactive **Looker Studio Executive Dashboard** for high-impact decision-making.
