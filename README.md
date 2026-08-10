@@ -140,7 +140,25 @@ To scale analytical impact across THE ICONIC beyond passive reporting, I propose
 
 ---
 
-### 4.2 Team Integration: Automating "Boring" BI Tasks in Stages 1 & 2
+### 4.2 The Campaign Simulation App (UX & Features)
+
+To help stakeholders visualize the end-product of this architecture, below is the conceptual UX design and feature workflow for the DataBot Platform:
+
+**Target Audience & Business Objectives:**
+* **Primary Users:** Marketing Managers, E-commerce Leads, and Merchandisers.
+* **Core Value:** Execute robust campaign simulations (Flash Sales, Clearances, New Collections) in **3–5 minutes** without SQL knowledge or Data Team dependencies.
+* **Governance:** Ensures **Zero-PII by design** (no real customer data exposed) and strict **Audit Logging** (immutable run histories).
+
+**Key Application Modules:**
+1. **Campaign Builder (No-Code Config):** Dropdown selection for target segments (e.g., *"Gen Z Sneaker Lovers - HCMC"*). Sliders to configure discount percentages (5–40%), freeship thresholds, and marketing channels.
+2. **Simulation Results Dashboard:** Displays live progress ("Spawning 5,000 Digital Twins..."). Post-run scorecards output predicted CTR, CVR, AOV, Incremental Revenue, and Full-Price Cannibalization Risk.
+3. **DataBot Chat Panel (AI Analyst):** A Slack-like conversational interface. When a user asks *"Why is CVR low for this segment?"*, DataBot transparently triggers the `root_cause_analyzer` tool to synthesize the simulated "internal monologues" of the Digital Twins and recommends actionable tweaks (e.g., *"Lower the freeship threshold rather than increasing the discount"*).
+4. **What-If Lab:** A split-screen interface to rapidly tweak a single parameter (e.g., bumping discount from 15% to 20%) and view the side-by-side impact on Gross Margin.
+5. **Run History & Governance (Admin):** RBAC-controlled audit logs tracking exactly who ran what simulation, using which version of the Digital Twin persona pool, ensuring complete research reproducibility.
+
+---
+
+### 4.3 Team Integration: Automating "Boring" BI Tasks in Stages 1 & 2
 
 To maximize focus on high-value data architecture, dimensional modeling, and commercial insights (Stages 1 & 2), I integrated AI into my workflow as an **Autonomous Pair-Programmer**. By establishing repository-level behavioral rules (`.agents/AGENTS.md`) and a specialized engineering skill (`.agents/skills/dbt-analytics-engineering/SKILL.md`), I automated the repetitive, boilerplate BI tasks:
 
@@ -159,7 +177,7 @@ While AI handled syntax and boilerplate in seconds, I maintained strict architec
 
 ---
 
-### 4.3 Executive Summary & Defense Notes
+### 4.4 Executive Summary & Defense Notes
 
 *Defense Script for Executive Q&A on Stage 4:*
 
