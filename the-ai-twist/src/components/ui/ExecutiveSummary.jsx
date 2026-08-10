@@ -15,10 +15,10 @@ export default function ExecutiveSummary() {
             <strong>Network Stability:</strong> The 45-store footprint demonstrates robust baseline stability, generating 184.3M ₫ in total sales. The network inherently resists moderate inflation, achieving a +0.69% net growth during standard fuel spikes.
           </li>
           <li>
-            <strong>Promotional Elasticity:</strong> Mega-campaigns (e.g., Black Friday) are the sole drivers of positive multi-sigma statistical anomalies. Crucially, Tier-2 stores exhibit significantly higher relative elasticity than high-volume flagship locations.
+            <strong>Promotional Elasticity:</strong> Mega-campaigns (e.g., Black Friday) drive 80% of multi-sigma sales spikes. Crucially, medium-volume Tier-2 stores exhibit significantly higher relative promotional elasticity than high-volume flagship branches.
           </li>
           <li>
-            <strong>Macro-Economic Vulnerability:</strong> The network possesses a strict breaking point. When local fuel price inflation breaches the 10% threshold, systemic resilience collapses, flipping the majority of stores into a vulnerable 'Pro-Cyclical' state.
+            <strong>Macro-Economic Vulnerability:</strong> Systemic resilience possesses a strict breaking point. When regional fuel inflation breaches the <strong>10% threshold</strong>, retail resilience collapses, plunging all branches into a vulnerable 'Pro-Cyclical' deficit (-5% to -20%).
           </li>
         </ul>
       </div>
@@ -31,13 +31,13 @@ export default function ExecutiveSummary() {
         </div>
         <ul className="space-y-3 text-sm text-slate-700 leading-relaxed list-decimal list-inside">
           <li>
-            <strong>Re-allocate Campaign Inventory:</strong> Shift future Black Friday and clearance inventory buffers heavily toward elastic Tier-2 stores (e.g., Store 29) to maximize ROI, rather than defaulting to top-volume branches.
+            <strong>Re-allocate Campaign Inventory:</strong> Shift future Black Friday and clearance inventory buffers heavily toward high-elasticity Tier-2 branches (e.g., Store 29) to maximize promotional ROI, rather than over-indexing on flagship locations.
           </li>
           <li>
-            <strong>Deploy Targeted Subsidies:</strong> Implement an automated early-warning system. Emergency pricing subsidies or localized promotions should only be triggered when regional fuel inflation exceeds the critical 10% threshold.
+            <strong>Deploy Automated Fuel Subsidies:</strong> Implement an early-warning trigger in the supply chain. Localized pricing subsidies or promotional shields should <em>only</em> activate when regional fuel inflation breaches the critical <strong>10% threshold</strong>.
           </li>
           <li>
-            <strong>Scale the 'Lipstick Effect':</strong> Audit the product mix and operational strategy of Store 35 (The Downturn Champion). Replicate its success in capturing down-trading consumers across other high-unemployment regions.
+            <strong>Scale the 'Lipstick Effect':</strong> Audit the product mix and visual merchandising of Store 35 (The Downturn Champion, 130% Resilience Index). Replicate its value-line strategy across other high-unemployment regions to capture down-trading consumers.
           </li>
         </ul>
       </div>
